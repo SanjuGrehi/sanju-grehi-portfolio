@@ -1,1 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Manrope', system-ui, sans-serif;
+}
+
+:root {
+  --bg: #F8FAFC;
+  --bg-card: #ffffff;
+  --bg-muted: #F1F5F9;
+  --fg: #0F172A;
+  --fg-muted: #64748B;
+  --primary: #2563EB;
+  --primary-light: #DBEAFE;
+  --secondary: #0EA5E9;
+  --border: #E2E8F0;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.08);
+}
+
+.dark {
+  --bg: #0F172A;
+  --bg-card: #1E293B;
+  --bg-muted: #162032;
+  --fg: #F1F5F9;
+  --fg-muted: #94A3B8;
+  --primary: #3B82F6;
+  --primary-light: #1e3a5f;
+  --secondary: #38BDF8;
+  --border: #2D3F55;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+html::-webkit-scrollbar { display: none; }
+html { scrollbar-width: none; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scrollDot {
+  0%,100% { transform: translateY(0); opacity: 1; }
+  50%      { transform: translateY(8px); opacity: 0.3; }
+}
+
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
