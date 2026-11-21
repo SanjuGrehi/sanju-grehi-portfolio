@@ -2064,9 +2064,9 @@ function Contact() {
                 },
                 {
                   label: "LinkedIn",
-                  value: "linkedin.com/in/sanjugrehi",
+                  value: "linkedin.com/in/sanju-grehi",
                   color: "#0A66C2",
-                  href: "https://linkedin.com/in/sanjugrehi",
+                  href: "https://linkedin.com/in/sanju-grehi",
                   icon: "in",
                 },
                 {
