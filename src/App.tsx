@@ -1,2620 +1,646 @@
-import { useState, useEffect, useRef, type ReactNode } from "react"
+import { useState, useEffect } from "react"
+import { Hardware3D, BOARD_PINS, type PinInfo } from "./components/Hardware3D"
+import { LogicAnalyzer } from "./components/LogicAnalyzer"
+import { InteractiveProjects } from "./components/InteractiveProjects"
+import { EngineeringTerminal } from "./components/EngineeringTerminal"
+import { CertificationsSection } from "./components/CertificationsSection"
 
-// ─── DATA ────────────────────────────────────────────────────────────────────
+// ─── SKILL TAXONOMY ──────────────────────────────────────────────────────────
 
-const CAREER_SNAPSHOT = [
-  { kicker: "Target role", value: "Embedded Systems & Firmware" },
-  { kicker: "Specialization", value: "Robotics & Intelligent Systems" },
-  { kicker: "Internship window", value: "January – June 2027" },
-  { kicker: "Location preference", value: "Kerala first · India tech hubs" },
-]
-
-const SKILL_CATEGORIES = [
+const SKILL_DOMAINS = [
   {
-    id: "project",
-    label: "Demonstrated in Projects",
-    status: "Project experience",
-    icon: "01",
-    color: "#2563EB",
-    bg: "#EFF6FF",
+    title: "Core Embedded & Firmware",
+    category: "FIRMWARE_CORE",
+    desc: "Low-level deterministic systems programming and bare-metal hardware control.",
+    color: "#2563eb",
     skills: [
-      "Arduino-based prototyping",
-      "C/C++ foundations",
-      "ESP32 IoT integration",
-      "RFID interfacing",
-      "Sensor data acquisition",
-      "MQTT communication",
+      { name: "Embedded C", level: "Primary Language", note: "Pointers, memory management, bitwise manipulation" },
+      { name: "C++ for Embedded", level: "Firmware Core", note: "OOP abstractions, templates, zero-cost drivers" },
+      { name: "Microcontroller Programming", level: "Hardware Direct", note: "Registers, clock tree configuration, bare-metal" },
+      { name: "Firmware Debugging", level: "Instrumentation", note: "GDB, SWD/JTAG, logic analysis, UART logging" },
     ],
-    desc: "Technologies used across the RFID attendance and IoT energy-monitoring project work currently featured in this portfolio.",
   },
   {
-    id: "core",
-    label: "Core Embedded Skills",
-    status: "Learning",
-    icon: "02",
-    color: "#7C3AED",
-    bg: "#F5F3FF",
+    title: "Platforms & Architectures",
+    category: "SILICON_PLATFORMS",
+    desc: "Target microcontrollers and silicon architectures used across projects.",
+    color: "#0891b2",
     skills: [
-      "Embedded C/C++",
-      "Microcontroller programming",
-      "Hardware–software integration",
-      "Firmware debugging",
+      { name: "STM32 (ARM Cortex-M4)", level: "32-bit Architecture", note: "NVIC interrupts, DMA, hardware timers, ADC" },
+      { name: "ESP32 / ESP32-S3", level: "Dual-Core IoT", note: "Wi-Fi/BLE stacks, FreeRTOS tasks, MQTT clients" },
+      { name: "Arduino (ATmega328P)", level: "Prototyping", note: "Rapid hardware verification and peripheral testing" },
+      { name: "Raspberry Pi / Linux", level: "Embedded Linux", note: "Shell scripting, Python automation, serial bridges" },
     ],
-    desc: "Highest-priority development areas for building a strong embedded and firmware engineering foundation.",
   },
   {
-    id: "platforms",
-    label: "Platforms & Interfaces",
-    status: "Learning roadmap",
-    icon: "03",
-    color: "#0891B2",
-    bg: "#ECFEFF",
+    title: "Buses & Peripheral Protocols",
+    category: "COMM_PROTOCOLS",
+    desc: "Inter-chip and subsystem communication standards.",
+    color: "#16a34a",
     skills: [
-      "ESP32",
-      "STM32",
-      "ARM Cortex-M",
-      "GPIO",
-      "Interrupts",
-      "Timers",
-      "ADC",
-      "PWM",
-      "UART",
-      "SPI",
-      "I²C",
-      "CAN",
+      { name: "UART / USART", level: "Serial Comms", note: "115200 baud, framing, ring buffers, interrupts" },
+      { name: "SPI Bus", level: "Synchronous High-Speed", note: "10-25 MHz SD card logging, display drivers, sensors" },
+      { name: "I2C Bus", level: "Multi-Drop 2-Wire", note: "100k/400k Fast-mode, OLED, LCD, IMU interfacing" },
+      { name: "CAN 2.0B", level: "Automotive / Robotics", note: "Differential signaling, identifier arbitration, CRC" },
+      { name: "GPIO / Timers / PWM", level: "Hardware Peripherals", note: "Input capture, edge triggers, motor driver PWM" },
+      { name: "ADC & Sensor Interfacing", level: "Mixed Signal", note: "12-bit SAR, CT clamps, thermistors, analog conditioning" },
     ],
-    desc: "Platforms and peripheral interfaces to learn or strengthen through practical firmware exercises and documented prototypes.",
   },
   {
-    id: "specialization",
-    label: "Specialization Areas",
-    status: "Learning",
-    icon: "04",
-    color: "#16A34A",
-    bg: "#F0FDF4",
+    title: "Specialization & Systems",
+    category: "SYSTEMS_INTEGRATION",
+    desc: "Connecting embedded firmware with intelligent systems and real-world machinery.",
+    color: "#d97706",
     skills: [
-      "RTOS concepts",
-      "Automotive embedded systems",
-      "EV electronics",
-      "Robotics",
-      "Sensors",
-      "Motor control",
+      { name: "FreeRTOS Concepts", level: "Real-Time OS", note: "Task scheduling, queues, semaphores, mutexes" },
+      { name: "Robotics & Actuation", level: "Mechatronics", note: "DC/Servo motors, encoder feedback, kinematics" },
+      { name: "Industrial Automation & PLC", level: "Control Systems", note: "Ladder logic, safety interlocks, sensor automation" },
+      { name: "Electric Vehicle Systems", level: "Powertrain / BMS", note: "Battery telemetry, high-voltage sensing, CAN nodes" },
     ],
-    desc: "Application areas connecting embedded firmware with robotics, intelligent systems, vehicles, EVs, and industrial products.",
-  },
-  {
-    id: "future",
-    label: "Future Learning",
-    status: "Planned",
-    icon: "05",
-    color: "#DB2777",
-    bg: "#FDF2F8",
-    skills: [
-      "ROS 2",
-      "CAN FD",
-      "UDS",
-      "BMS concepts",
-      "AUTOSAR fundamentals",
-      "MATLAB/Simulink",
-    ],
-    desc: "Longer-term learning topics. These are roadmap items and are not presented as current proficiency.",
-  },
-  {
-    id: "foundation",
-    label: "Related EEE Foundation",
-    status: "Academic / familiar with",
-    icon: "06",
-    color: "#D97706",
-    bg: "#FFF7ED",
-    skills: [
-      "Circuit analysis",
-      "Control systems",
-      "Power electronics",
-      "Electrical machines",
-      "PLC/SCADA concepts",
-      "Technical documentation",
-    ],
-    desc: "Related electrical engineering and control-system knowledge retained as supporting context rather than the primary career direction.",
   },
 ]
 
-const PROJECTS = [
-  {
-    id: 1,
-    title: "RFID-Based Smart Attendance System",
-    category: "Embedded Systems",
-    description:
-      "A microcontroller project centered on RFID identification, local interaction, and attendance data logging.",
-    problem:
-      "Manual attendance tracking is error-prone, time-consuming, and susceptible to proxy attendance — causing administrative overhead and data inaccuracy in institutions.",
-    solution:
-      "Uses an Arduino, RFID reader, I²C LCD, and SD-card logging, with a supporting workflow for processing exported attendance data.",
-    tags: ["Project experience", "Arduino", "RFID", "C/C++", "I²C"],
-    color: "#2563EB",
-    image:
-      "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=450&fit=crop&auto=format",
-  },
-  {
-    id: 2,
-    title: "IoT Smart Energy Meter & Dashboard",
-    category: "Embedded IoT",
-    description:
-      "An ESP32-based monitoring project connecting sensor acquisition, device communication, and a dashboard workflow.",
-    problem:
-      "Conventional meters lack real-time visibility and analytics, making it impossible for consumers to identify energy waste or optimize consumption patterns.",
-    solution:
-      "Uses a CT clamp sensor, ESP32, and MQTT publishing, with a dashboard for viewing energy data and trends.",
-    tags: ["Project experience", "ESP32", "MQTT", "Sensor integration", "IoT"],
-    color: "#16A34A",
-    image:
-      "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&h=450&fit=crop&auto=format",
-  },
-  {
-    id: 3,
-    title: "Adaptive Traffic Control System",
-    category: "Control Systems",
-    description:
-      "A PLC-based control project exploring state logic, sensor inputs, adaptive timing, and operator visualization.",
-    problem:
-      "Fixed-time traffic signals cause unnecessary congestion and delay emergency response — a solvable problem with programmable logic and sensor inputs.",
-    solution:
-      "Uses ladder-logic state control, traffic-sensing inputs, priority behavior, and HMI visualization. It is presented as adjacent control-systems experience rather than firmware experience.",
-    tags: [
-      "Related experience",
-      "Control logic",
-      "Sensors",
-      "State machines",
-      "HMI",
-    ],
-    color: "#D97706",
-    image:
-      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=450&fit=crop&auto=format",
-  },
-]
+export default function App() {
+  const [dark, setDark] = useState(true)
+  const [activePin, setActivePin] = useState<PinInfo>(BOARD_PINS[2]) // PA5 PWM default
+  const [isPowered, setIsPowered] = useState(true)
+  const [firmwareMode, setFirmwareMode] = useState("RTOS_SCHEDULER")
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-const CERTIFICATIONS = [
-  {
-    title: "KSEBL Internship – 110 KV Substation",
-    issuer: "Kerala State Electricity Board Ltd",
-    date: "Jul 2025",
-    type: "Internship",
-    color: "#16A34A",
-    description:
-      "Completed internship training at the 110 KV Substation, Irinjalakuda, Thrissur from 03-Jul-2025 to 11-Jul-2025.",
-  },
-  {
-    title: "Boot Camp – Allied Technologies for UAS/Drone",
-    issuer: "NIELIT Calicut / IEEE Kerala Section",
-    date: "Feb 2025",
-    type: "Completion",
-    color: "#2563EB",
-    description:
-      "One-week offline boot camp on drone and related technologies, funded by MeitY under LINK, IEEE Kerala Section, IEEE RAS Kerala Chapter.",
-  },
-  {
-    title: "Embedded Systems Course",
-    issuer: "Elewayte",
-    date: "Jul 2025",
-    type: "Completion",
-    color: "#7C3AED",
-    description:
-      "Successfully completed the Embedded Systems course offered by Elewayte between May 2025 and June 2025.",
-  },
-  {
-    title: "AI Awareness & Foundation – AI for Future Workforce Program",
-    issuer: "Dell Technologies / Intel / Sahrdaya CET",
-    date: "Apr 2025",
-    type: "Completion",
-    color: "#0891B2",
-    description:
-      "Completed the AI Awareness and Foundation course as part of the AI for Future Workforce Program from January to April 2025.",
-  },
-  {
-    title: "Digital 101 – 30 Hours (Gold Category)",
-    issuer: "FutureSkills Prime / NASSCOM / MeitY",
-    date: "Dec 2024",
-    type: "Completion",
-    color: "#D97706",
-    description:
-      "Successfully cleared the Digital 101 assessment (30 hours) with a Gold category score (70%+ and above).",
-  },
-  {
-    title: "Be10X AI Tools & ChatGPT Workshop",
-    issuer: "Be10X",
-    date: "Jul 2026",
-    type: "Completion",
-    color: "#DB2777",
-    description:
-      "Completed the AI tools and ChatGPT workshop covering AI presentations, data analysis, and coding/debugging.",
-  },
-  {
-    title: "Best Project Award – E-Savu",
-    issuer: "Sahrdaya College of Engg & Technology",
-    date: "Mar 2025",
-    type: "Award",
-    color: "#16A34A",
-    description:
-      "Received best project award for the project titled 'E-Savu' during the academic year 2024–2025.",
-  },
-  {
-    title: "Secretary – IEEE Signal Processing Society (SPS)",
-    issuer: "IEEE Sahrdaya SB – Execom'25",
-    date: "2025",
-    type: "Leadership",
-    color: "#2563EB",
-    description:
-      "Recognized for outstanding contributions and exemplary dedication as Secretary of SPS in the Execom'25 of IEEE Sahrdaya SB.",
-  },
-  {
-    title: "Siemens – How Engineers Can Stand Out to Employers",
-    issuer: "Siemens",
-    date: "May 2025",
-    type: "Achievement",
-    color: "#0891B2",
-    description:
-      "Certificate of Achievement for completing the Siemens course on how engineering students and early-career engineers can stand out to employers.",
-  },
-  {
-    title: "IEEE Student Membership 2026",
-    issuer: "IEEE",
-    date: "2026",
-    type: "Membership",
-    color: "#D97706",
-    description:
-      "Student Member in good standing through December 2026, denoting commitment to the advancement of technology.",
-  },
-  {
-    title: "IEEE Control Systems Society Membership 2026",
-    issuer: "IEEE Control Systems Society",
-    date: "2026",
-    type: "Membership",
-    color: "#7C3AED",
-    description:
-      "Student Member of IEEE Control Systems Society in good standing for 2026.",
-  },
-  {
-    title: "IEEE Signal Processing Society Membership 2026",
-    issuer: "IEEE Signal Processing Society",
-    date: "2026",
-    type: "Membership",
-    color: "#DB2777",
-    description:
-      "Student Member of IEEE Signal Processing Society in good standing for 2026.",
-  },
-  {
-    title: "IEEE Student Membership 2025",
-    issuer: "IEEE",
-    date: "2025",
-    type: "Membership",
-    color: "#D97706",
-    description:
-      "Student Member in good standing through December 2025.",
-  },
-  {
-    title: "IEEE YESS'25 – Yearly Engineering Students Summit",
-    issuer: "IEEE Kerala Section / IEEE LINK",
-    date: "Sep 2025",
-    type: "Participation",
-    color: "#16A34A",
-    description:
-      "Attended IEEE Yearly Engineering Students Summit 2025 (YESS'25) on 20th September 2025 at NIT Calicut.",
-  },
-  {
-    title: "MINDMESH – IEEE YESS'25 Event",
-    issuer: "IEEE SB RSET / IEEE Kerala Section",
-    date: "Sep 2025",
-    type: "Participation",
-    color: "#2563EB",
-    description:
-      "Participated in the MINDMESH event as part of IEEE YESS'25 at NIT Calicut.",
-  },
-  {
-    title: "AI Image Generation Competition – Myth & Future Tech",
-    issuer: "IEEE Signal Processing Society, Sahrdaya SB",
-    date: "Mar 2025",
-    type: "Participation",
-    color: "#7C3AED",
-    description:
-      "Participated in the AI Image Generation Competition on Myth and Future Tech conducted by IEEE SPS Sahrdaya SB.",
-  },
-  {
-    title: "Navigating Engineering as Friends: A Success Story Gateway",
-    issuer: "IEEE CSS SBC CET",
-    date: "Mar 2025",
-    type: "Participation",
-    color: "#0891B2",
-    description:
-      "Participated in the online talk session conducted by IEEE CSS SBC CET on 8th March 2025.",
-  },
-  {
-    title: "Doodle Competition",
-    issuer: "IEEE Women in Engineering (WiE), Sahrdaya SB",
-    date: "2025",
-    type: "Participation",
-    color: "#DB2777",
-    description:
-      "Participated in the Doodle Competition hosted by the Women in Engineering (WiE) affinity group of IEEE Sahrdaya SB.",
-  },
-  {
-    title: "Tech Trivia",
-    issuer: "NDLI Club / IIT Kharagpur",
-    date: "Oct 2024",
-    type: "Participation",
-    color: "#D97706",
-    description:
-      "Participated in Tech Trivia held on October 26, 2024, organized by the NDLI Club of Sahrdaya College under the National Digital Library of India.",
-  },
-  {
-    title: "Webinar on Professional Career Counselling",
-    issuer: "Elewayte",
-    date: "Nov 2024",
-    type: "Participation",
-    color: "#16A34A",
-    description:
-      "Attended the online webinar on Professional Career Counselling on 24th November 2024.",
-  },
-]
-
-const CERT_TYPES = [
-  "All",
-  "Completion",
-  "Internship",
-  "Award",
-  "Leadership",
-  "Achievement",
-  "Membership",
-  "Participation",
-] as const
-
-const EDUCATION = [
-  {
-    year: "2024 – 2028",
-    type: "education",
-    highlight: true,
-    title: "B.Tech – Electrical & Electronics Engineering",
-    institution: "Sahrdaya College of Engineering & Technology",
-    location: "Kerala, India",
-    description:
-      "Building an electrical engineering foundation while developing practical embedded-systems skills and a specialization direction in robotics and intelligent systems.",
-  },
-  {
-    year: "Jan – Jun 2027",
-    type: "goal",
-    title: "Six-Month Internship Objective",
-    institution: "Embedded systems, firmware, robotics, or IoT",
-    location: "Kerala preferred · Open to Indian tech hubs",
-    description:
-      "Seeking a learning-intensive internship in Kochi or elsewhere in Kerala first, with openness to Bengaluru and other Indian technology hubs for strong technical mentorship and a worthwhile stipend.",
-  },
-]
-
-const LEADERSHIP = [
-  {
-    role: "IEEE SPS Student Chapter Chair",
-    org: "IEEE Signal Processing Society",
-    period: "2025 – Present",
-    description:
-      "Coordinating technical activities and student engagement through an IEEE student chapter role.",
-    achievements: [
-      "Event coordination",
-      "Team communication",
-      "Technical-session planning",
-    ],
-    color: "#2563EB",
-  },
-  {
-    role: "IEEE CSS Student Member",
-    org: "IEEE Control Systems Society",
-    period: "2024 – Present",
-    description:
-      "Participating in student technical activities connected to control systems and engineering knowledge sharing.",
-    achievements: [
-      "Technical discussions",
-      "Presentation practice",
-      "Collaborative documentation",
-    ],
-    color: "#7C3AED",
-  },
-  {
-    role: "Technical Workshop Organizer",
-    org: "Department of EEE",
-    period: "2024 – Present",
-    description:
-      "Supporting department-level technical workshops and peer learning activities.",
-    achievements: [
-      "Workshop coordination",
-      "Teamwork",
-      "Participant communication",
-    ],
-    color: "#16A34A",
-  },
-]
-
-const EXPERIENCE = [
-  {
-    title: "Industrial Training",
-    company: "Kerala State Electricity Board (KSEB)",
-    period: "Summer 2025",
-    type: "Internship",
-    description:
-      "Industrial exposure to substation operations, protection systems, distribution equipment, and engineering safety practices.",
-    highlights: [
-      "Substation operations exposure",
-      "Protection-system observation",
-      "Technical note-taking",
-      "Engineering safety awareness",
-    ],
-    color: "#2563EB",
-  },
-  {
-    title: "Research Project – Solar PV System Design",
-    company: "Department of EEE, Sahrdaya College of Engineering & Technology",
-    period: "2024 – 2025",
-    type: "Research",
-    description:
-      "Academic project work involving solar-PV system design and simulation, retained as evidence of structured engineering analysis and documentation.",
-    highlights: [
-      "Simulation workflow",
-      "Design trade-offs",
-      "Technical documentation",
-      "Engineering analysis",
-    ],
-    color: "#16A34A",
-  },
-  {
-    title: "Automation Lab Teaching Assistant",
-    company: "Sahrdaya College of Engineering & Technology – EEE Department",
-    period: "2024 – Present",
-    type: "Academic",
-    description:
-      "Academic support work in automation labs, with emphasis on clear technical communication, lab organization, and documentation.",
-    highlights: [
-      "Lab support",
-      "Peer communication",
-      "Documentation",
-      "Control-system context",
-    ],
-    color: "#D97706",
-  },
-]
-
-const GALLERY_IMAGES = [
-  {
-    id: 1,
-    src: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=500&h=380&fit=crop&auto=format",
-    alt: "Engineering workspace reference",
-    cat: "Product Engineering",
-  },
-  {
-    id: 2,
-    src: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=500&h=620&fit=crop&auto=format",
-    alt: "Electric-energy technology reference",
-    cat: "EV & Energy Systems",
-  },
-  {
-    id: 3,
-    src: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=500&h=360&fit=crop&auto=format",
-    alt: "Electronic hardware reference",
-    cat: "Embedded Hardware",
-  },
-  {
-    id: 4,
-    src: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=500&h=440&fit=crop&auto=format",
-    alt: "Engineering team reference",
-    cat: "Technical Collaboration",
-  },
-  {
-    id: 5,
-    src: "https://images.unsplash.com/photo-1562408590-e32931084e23?w=500&h=360&fit=crop&auto=format",
-    alt: "Industrial electronics reference",
-    cat: "Industrial Products",
-  },
-  {
-    id: 6,
-    src: "https://images.unsplash.com/photo-1497440001374-f26997328c1b?w=500&h=560&fit=crop&auto=format",
-    alt: "Intelligent energy-system reference",
-    cat: "Connected Systems",
-  },
-  {
-    id: 7,
-    src: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=500&h=360&fit=crop&auto=format",
-    alt: "Robotics technology reference",
-    cat: "Robotics",
-  },
-  {
-    id: 8,
-    src: "https://images.unsplash.com/photo-1580894732444-8ecded7900cd?w=500&h=400&fit=crop&auto=format",
-    alt: "Firmware development reference",
-    cat: "Embedded Development",
-  },
-  {
-    id: 9,
-    src: "https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=500&h=340&fit=crop&auto=format",
-    alt: "Technical teamwork reference",
-    cat: "Engineering Teams",
-  },
-]
-
-const NAV_LINKS = [
-  "Home",
-  "About",
-  "Education",
-  "Skills",
-  "Projects",
-  "Experience",
-  "Leadership",
-  "Certifications",
-  "Gallery",
-  "Contact",
-]
-const TYPE_COLORS: Record<string, string> = {
-  education: "#2563EB",
-  goal: "#16A34A",
-}
-const TYPE_LABELS: Record<string, string> = {
-  education: "Education",
-  goal: "Career Goal",
-}
-
-// ─── HOOKS ───────────────────────────────────────────────────────────────────
-
-function useInView(threshold = 0.12) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [inView, setInView] = useState(false)
   useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) setInView(true)
-      },
-      { threshold },
-    )
-    if (ref.current) obs.observe(ref.current)
-    return () => obs.disconnect()
-  }, [threshold])
-  return { ref, inView }
-}
-
-function useDarkMode() {
-  const [dark, setDark] = useState(() => {
-    if (typeof window === "undefined") return false
-    const saved = localStorage.getItem("sg-theme")
-    if (saved) return saved === "dark"
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-  })
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark)
-    localStorage.setItem("sg-theme", dark ? "dark" : "light")
+    if (dark) {
+      document.documentElement.classList.add("dark")
+    } else {
+      document.documentElement.classList.remove("dark")
+    }
   }, [dark])
-  return { dark, toggle: () => setDark((d) => !d) }
-}
-
-// ─── PRIMITIVES ──────────────────────────────────────────────────────────────
-
-function FadeIn({
-  children,
-  delay = 0,
-  className = "",
-}: {
-  children: ReactNode
-  delay?: number
-  className?: string
-}) {
-  const { ref, inView } = useInView()
-  return (
-    <div
-      ref={ref}
-      className={className}
-      style={{
-        opacity: inView ? 1 : 0,
-        transform: inView ? "translateY(0)" : "translateY(28px)",
-        transition: `opacity 0.65s ease ${delay}ms, transform 0.65s ease ${delay}ms`,
-      }}
-    >
-      {children}
-    </div>
-  )
-}
-
-function Tag({
-  children,
-  color = "#2563EB",
-}: {
-  children: ReactNode
-  color?: string
-}) {
-  return (
-    <span
-      className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full"
-      style={{
-        backgroundColor: `${color}18`,
-        color,
-        border: `1px solid ${color}28`,
-      }}
-    >
-      {children}
-    </span>
-  )
-}
-
-function SectionHeader({
-  label,
-  title,
-  subtitle,
-}: {
-  label: string
-  title: string
-  subtitle?: string
-}) {
-  const { ref, inView } = useInView()
-  return (
-    <div
-      ref={ref}
-      className="text-center mb-16"
-      style={{
-        opacity: inView ? 1 : 0,
-        transform: inView ? "translateY(0)" : "translateY(20px)",
-        transition: "opacity 0.6s ease, transform 0.6s ease",
-      }}
-    >
-      <span
-        className="text-xs font-bold tracking-widest uppercase px-3 py-1.5 rounded-full mb-5 inline-block"
-        style={{
-          color: "var(--primary)",
-          backgroundColor: "var(--primary-light)",
-        }}
-      >
-        {label}
-      </span>
-      <h2
-        className="text-3xl md:text-4xl font-extrabold mb-4 leading-tight"
-        style={{
-          fontFamily: "var(--font-display)",
-          color: "var(--fg)",
-          letterSpacing: "-0.02em",
-        }}
-      >
-        {title}
-      </h2>
-      {subtitle && (
-        <p
-          className="text-sm leading-relaxed max-w-2xl mx-auto"
-          style={{ color: "var(--fg-muted)" }}
-        >
-          {subtitle}
-        </p>
-      )}
-    </div>
-  )
-}
-
-function IconBtn({
-  onClick,
-  title,
-  children,
-}: {
-  onClick: () => void
-  title: string
-  children: ReactNode
-}) {
-  return (
-    <button
-      onClick={onClick}
-      title={title}
-      className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-105"
-      style={{
-        backgroundColor: "var(--bg-muted)",
-        color: "var(--fg-muted)",
-        border: "1px solid var(--border)",
-      }}
-    >
-      {children}
-    </button>
-  )
-}
-
-// ─── NAV ─────────────────────────────────────────────────────────────────────
-
-function Nav({ dark, toggleDark }: { dark: boolean toggleDark: () => void }) {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 24)
-    window.addEventListener("scroll", fn, { passive: true })
-    return () => window.removeEventListener("scroll", fn)
-  }, [])
 
   const scrollTo = (id: string) => {
-    document
-      .getElementById(id.toLowerCase())
-      ?.scrollIntoView({ behavior: "smooth" })
-    setMenuOpen(false)
-  }
-
-  const navBg = scrolled
-    ? dark
-      ? "rgba(15,23,42,0.92)"
-      : "rgba(248,250,252,0.92)"
-    : "transparent"
-
-  return (
-    <nav
-      className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-      style={{
-        backgroundColor: navBg,
-        backdropFilter: scrolled ? "blur(16px)" : "none",
-        borderBottom: `1px solid ${scrolled ? "var(--border)" : "transparent"}`,
-      }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16">
-          <button
-            onClick={() => scrollTo("home")}
-            className="flex items-center gap-2.5"
-          >
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-bold"
-              style={{
-                background: "linear-gradient(135deg, #2563EB, #0EA5E9)",
-              }}
-            >
-              SG
-            </div>
-            <span
-              className="font-bold text-sm hidden sm:block"
-              style={{ color: "var(--fg)", fontFamily: "var(--font-display)" }}
-            >
-              Sanju Grehi
-            </span>
-          </button>
-
-          <div className="hidden lg:flex items-center gap-5">
-            {NAV_LINKS.map((link) => (
-              <button
-                key={link}
-                onClick={() => scrollTo(link)}
-                className="text-xs font-medium transition-all hover:opacity-100"
-                style={{ color: "var(--fg)", opacity: 0.6 }}
-              >
-                {link}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <IconBtn onClick={toggleDark} title="Toggle theme">
-              {dark ? (
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="5" />
-                  <line x1="12" y1="1" x2="12" y2="3" />
-                  <line x1="12" y1="21" x2="12" y2="23" />
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                  <line x1="1" y1="12" x2="3" y2="12" />
-                  <line x1="21" y1="12" x2="23" y2="12" />
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-                </svg>
-              ) : (
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                </svg>
-              )}
-            </IconBtn>
-            <button
-              className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{
-                backgroundColor: "var(--bg-muted)",
-                border: "1px solid var(--border)",
-                color: "var(--fg)",
-              }}
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
-              {menuOpen ? (
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M3 12h18M3 6h18M3 18h18" />
-                </svg>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {menuOpen && (
-        <div
-          className="lg:hidden border-t px-4 pb-4 pt-3"
-          style={{ borderColor: "var(--border)", backgroundColor: "var(--bg)" }}
-        >
-          <div className="grid grid-cols-2 gap-1">
-            {NAV_LINKS.map((link) => (
-              <button
-                key={link}
-                onClick={() => scrollTo(link)}
-                className="text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
-                style={{ color: "var(--fg)", backgroundColor: "transparent" }}
-              >
-                {link}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </nav>
-  )
-}
-
-// ─── HERO ────────────────────────────────────────────────────────────────────
-
-function Hero() {
-  return (
-    <section
-      id="home"
-      className="min-h-screen flex items-center relative overflow-hidden"
-      style={{ backgroundColor: "var(--bg)" }}
-    >
-      {/* dot grid */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, var(--border) 1px, transparent 1px)",
-          backgroundSize: "30px 30px",
-          opacity: 0.6,
-        }}
-      />
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 70% at 50% 50%, var(--bg) 25%, transparent 100%)",
-        }}
-      />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-28 lg:py-36 relative z-10 w-full">
-        <div className="grid lg:grid-cols-2 gap-14 items-center">
-          {/* Text */}
-          <div>
-            <div
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide mb-8"
-              style={{
-                backgroundColor: "var(--primary-light)",
-                color: "var(--primary)",
-                border: "1px solid var(--primary)28",
-              }}
-            >
-              <span
-                className="w-1.5 h-1.5 rounded-full"
-                style={{
-                  backgroundColor: "var(--primary)",
-                  animation: "pulse-dot 2s ease-in-out infinite",
-                }}
-              />
-              Seeking a six-month internship · Jan–Jun 2027
-            </div>
-
-            <h1
-              className="text-5xl sm:text-6xl xl:text-7xl font-extrabold leading-none mb-3"
-              style={{
-                fontFamily: "var(--font-display)",
-                color: "var(--fg)",
-                letterSpacing: "-0.03em",
-              }}
-            >
-              Sanju<span style={{ color: "var(--primary)" }}> Grehi</span>
-            </h1>
-            <p
-              className="text-lg font-semibold mb-2"
-              style={{
-                color: "var(--fg)",
-                fontFamily: "var(--font-display)",
-                opacity: 0.65,
-              }}
-            >
-              Aspiring Embedded Systems & Firmware Engineer
-            </p>
-            <p
-              className="text-sm font-semibold tracking-wide mb-8"
-              style={{ color: "var(--secondary)" }}
-            >
-              Robotics & Intelligent Systems · Automotive · EV · Industrial
-              Products
-            </p>
-            <p
-              className="text-sm leading-7 mb-10 max-w-lg"
-              style={{ color: "var(--fg-muted)" }}
-            >
-              Electrical and Electronics Engineering undergraduate at Sahrdaya
-              College of Engineering & Technology, building practical skills in
-              microcontrollers, hardware–software integration, and firmware
-              development.
-            </p>
-
-            <div className="flex flex-wrap gap-3 mb-10">
-              {[
-                {
-                  label: "Discuss an Internship",
-                  primary: true,
-                  action: () =>
-                    document
-                      .getElementById("contact")
-                      ?.scrollIntoView({ behavior: "smooth" }),
-                },
-                {
-                  label: "View Projects",
-                  primary: false,
-                  action: () =>
-                    document
-                      .getElementById("projects")
-                      ?.scrollIntoView({ behavior: "smooth" }),
-                },
-                {
-                  label: "Explore Skills",
-                  primary: false,
-                  action: () =>
-                    document
-                      .getElementById("skills")
-                      ?.scrollIntoView({ behavior: "smooth" }),
-                },
-              ].map(({ label, primary, action }) => (
-                <button
-                  key={label}
-                  onClick={action}
-                  className="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02] hover:shadow-md active:scale-[0.98]"
-                  style={
-                    primary
-                      ? {
-                          background:
-                            "linear-gradient(135deg, #2563EB, #1D4ED8)",
-                          color: "white",
-                          boxShadow: "0 4px 20px rgba(37,99,235,0.35)",
-                        }
-                      : {
-                          backgroundColor: "var(--bg-card)",
-                          color: "var(--fg)",
-                          border: "1px solid var(--border)",
-                        }
-                  }
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-3">
-              {[
-                {
-                  label: "GitHub",
-                  href: "https://github.com/sanjugrehi",
-                  icon: (
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                    </svg>
-                  ),
-                },
-                {
-                  label: "LinkedIn",
-                  href: "https://linkedin.com/in/sanjugrehi",
-                  icon: (
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                    </svg>
-                  ),
-                },
-                {
-                  label: "Email",
-                  href: "mailto:sanjugrehi@gmail.com",
-                  icon: (
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                      <polyline points="22,6 12,13 2,6" />
-                    </svg>
-                  ),
-                },
-              ].map(({ label, href, icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all hover:scale-105"
-                  style={{
-                    color: "var(--fg-muted)",
-                    backgroundColor: "var(--bg-muted)",
-                    border: "1px solid var(--border)",
-                    textDecoration: "none",
-                  }}
-                >
-                  {icon}
-                  {label}
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Profile card */}
-          <div className="flex justify-center lg:justify-end">
-            <div className="relative">
-              <div
-                className="absolute -inset-3 rounded-3xl"
-                style={{
-                  background: "linear-gradient(135deg, #2563EB15, #0EA5E915)",
-                  border: "1px solid var(--border)",
-                }}
-              />
-              <div
-                className="relative w-72 sm:w-80 rounded-2xl p-6"
-                style={{
-                  backgroundColor: "var(--bg-card)",
-                  border: "1px solid var(--border)",
-                  boxShadow: "0 24px 80px rgba(0,0,0,0.1)",
-                }}
-              >
-                <div className="flex justify-center mb-5">
-                  <div
-                    className="w-28 h-28 rounded-2xl flex items-center justify-center text-white font-bold text-4xl"
-                    style={{
-                      background: "linear-gradient(135deg, #2563EB, #0EA5E9)",
-                      boxShadow: "0 12px 40px rgba(37,99,235,0.35)",
-                    }}
-                  >
-                    SG
-                  </div>
-                </div>
-                <div className="text-center mb-5">
-                  <h3
-                    className="font-bold text-lg"
-                    style={{
-                      color: "var(--fg)",
-                      fontFamily: "var(--font-display)",
-                    }}
-                  >
-                    Sanju Grehi
-                  </h3>
-                  <p
-                    className="text-xs mt-0.5"
-                    style={{ color: "var(--fg-muted)" }}
-                  >
-                    B.Tech EEE · 2024–2028
-                  </p>
-                </div>
-                <div
-                  className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg mb-5 text-xs font-semibold"
-                  style={{ backgroundColor: "#dcfce7", color: "#15803d" }}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                  Internship target · Jan–Jun 2027
-                </div>
-                <div className="space-y-2.5">
-                  {[
-                    ["Target", "Embedded / Firmware"],
-                    ["Specialization", "Robotics & Intelligent Systems"],
-                    ["Education", "B.Tech EEE · 2024–2028"],
-                    ["Preference", "Kerala first"],
-                  ].map(([label, value]) => (
-                    <div
-                      key={label}
-                      className="flex justify-between items-center py-1.5 border-b text-xs last:border-0"
-                      style={{ borderColor: "var(--border)" }}
-                    >
-                      <span style={{ color: "var(--fg-muted)" }}>{label}</span>
-                      <span
-                        className="font-semibold"
-                        style={{ color: "var(--fg)" }}
-                      >
-                        {value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-        <span
-          className="text-xs"
-          style={{ color: "var(--fg-muted)", opacity: 0.6 }}
-        >
-          Scroll
-        </span>
-        <div
-          className="w-5 h-8 rounded-full border-2 flex items-start justify-center pt-1.5"
-          style={{ borderColor: "var(--border)" }}
-        >
-          <div
-            className="w-1 h-2 rounded-full"
-            style={{
-              backgroundColor: "var(--primary)",
-              animation: "scrollDot 1.5s ease-in-out infinite",
-            }}
-          />
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── STATS ───────────────────────────────────────────────────────────────────
-
-function SnapshotCard({
-  kicker,
-  value,
-  delay,
-}: {
-  kicker: string
-  value: string
-  delay: number
-}) {
-  const { ref, inView } = useInView()
-  return (
-    <div
-      ref={ref}
-      className="text-center p-5 rounded-2xl transition-all hover:scale-105"
-      style={{
-        opacity: inView ? 1 : 0,
-        transform: inView ? "translateY(0)" : "translateY(20px)",
-        transition: `opacity 0.5s ease ${delay}ms, transform 0.5s ease ${delay}ms`,
-        backgroundColor: "var(--bg-card)",
-        border: "1px solid var(--border)",
-        boxShadow: "var(--shadow-sm)",
-      }}
-    >
-      <div
-        className="text-[10px] font-bold uppercase tracking-[0.16em] mb-2"
-        style={{ color: "var(--primary)" }}
-      >
-        {kicker}
-      </div>
-      <div
-        className="text-sm font-bold leading-snug"
-        style={{ fontFamily: "var(--font-display)", color: "var(--fg)" }}
-      >
-        {value}
-      </div>
-    </div>
-  )
-}
-
-function Stats() {
-  return (
-    <section
-      className="py-14 border-y"
-      style={{
-        backgroundColor: "var(--bg-muted)",
-        borderColor: "var(--border)",
-      }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {CAREER_SNAPSHOT.map((item, i) => (
-            <SnapshotCard key={item.kicker} {...item} delay={i * 75} />
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── ABOUT ───────────────────────────────────────────────────────────────────
-
-function About() {
-  return (
-    <section
-      id="about"
-      className="py-24"
-      style={{ backgroundColor: "var(--bg)" }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <SectionHeader
-          label="Professional Summary"
-          title="Building Toward Embedded Engineering"
-          subtitle="An EEE foundation, a practical embedded-systems learning path, and a clear internship objective for 2027."
-        />
-        <div className="grid lg:grid-cols-2 gap-16 items-start">
-          <FadeIn>
-            <h3
-              className="text-lg font-bold mb-4"
-              style={{ color: "var(--fg)", fontFamily: "var(--font-display)" }}
-            >
-              Career Direction
-            </h3>
-            <div
-              className="space-y-4 text-sm leading-7"
-              style={{ color: "var(--fg-muted)" }}
-            >
-              <p>
-                I'm Sanju Grehi, an Electrical and Electronics Engineering
-                undergraduate at Sahrdaya College of Engineering & Technology,
-                Kerala, preparing for a career in embedded systems and firmware
-                engineering.
-              </p>
-              <p>
-                My current direction is to strengthen Embedded C/C++,
-                microcontroller programming, hardware–software integration, and
-                debugging through focused learning and practical projects. My
-                featured work includes Arduino, RFID, ESP32, sensors, and
-                MQTT-based systems.
-              </p>
-              <p>
-                I am seeking a six-month internship from January to June 2027 in
-                embedded systems, firmware, robotics, or IoT. I prefer Kochi or
-                elsewhere in Kerala first, while remaining open to Bengaluru and
-                other Indian technology hubs when the role offers strong
-                technical learning and a worthwhile stipend.
-              </p>
-            </div>
-            <div className="mt-8 grid grid-cols-2 gap-3">
-              {[
-                [
-                  "Primary Direction",
-                  "Embedded systems and firmware engineering",
-                ],
-                ["Specialization", "Robotics and intelligent systems"],
-                ["Industry Context", "Automotive, EV, and industrial products"],
-                [
-                  "Internship Objective",
-                  "Six months from January to June 2027",
-                ],
-              ].map(([title, desc]) => (
-                <div
-                  key={title}
-                  className="p-4 rounded-xl"
-                  style={{
-                    backgroundColor: "var(--bg-muted)",
-                    border: "1px solid var(--border)",
-                  }}
-                >
-                  <div
-                    className="text-xs font-bold mb-1"
-                    style={{ color: "var(--fg)" }}
-                  >
-                    {title}
-                  </div>
-                  <div
-                    className="text-xs leading-relaxed"
-                    style={{ color: "var(--fg-muted)" }}
-                  >
-                    {desc}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </FadeIn>
-          <FadeIn delay={150}>
-            <div className="space-y-4">
-              <div
-                className="p-5 rounded-2xl"
-                style={{
-                  backgroundColor: "var(--bg-card)",
-                  border: "1px solid var(--border)",
-                }}
-              >
-                <h4
-                  className="text-xs font-bold uppercase tracking-widest mb-3"
-                  style={{ color: "var(--fg-muted)" }}
-                >
-                  Demonstrated in Existing Projects
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    "Arduino prototyping",
-                    "ESP32 integration",
-                    "RFID interfacing",
-                    "Sensor acquisition",
-                    "MQTT communication",
-                  ].map((t) => (
-                    <Tag key={t} color="#2563EB">
-                      {t}
-                    </Tag>
-                  ))}
-                </div>
-              </div>
-              <div
-                className="p-5 rounded-2xl"
-                style={{
-                  backgroundColor: "var(--bg-card)",
-                  border: "1px solid var(--border)",
-                }}
-              >
-                <h4
-                  className="text-xs font-bold uppercase tracking-widest mb-3"
-                  style={{ color: "var(--fg-muted)" }}
-                >
-                  Currently Learning
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    "Embedded C/C++",
-                    "Microcontroller programming",
-                    "Hardware–software integration",
-                    "Firmware debugging",
-                    "STM32 / ARM Cortex-M",
-                  ].map((t) => (
-                    <Tag key={t} color="#7C3AED">
-                      {t}
-                    </Tag>
-                  ))}
-                </div>
-              </div>
-              <div
-                className="p-5 rounded-2xl"
-                style={{
-                  backgroundColor: "var(--bg-card)",
-                  border: "1px solid var(--border)",
-                }}
-              >
-                <h4
-                  className="text-xs font-bold uppercase tracking-widest mb-3"
-                  style={{ color: "var(--fg-muted)" }}
-                >
-                  Career Vision
-                </h4>
-                <p
-                  className="text-sm leading-relaxed"
-                  style={{ color: "var(--fg-muted)" }}
-                >
-                  Develop reliable embedded and intelligent systems for
-                  vehicles, electric mobility, robotics, and industrial
-                  products—growing from strong firmware fundamentals into
-                  real-time and safety-aware engineering.
-                </p>
-              </div>
-              <div
-                className="p-5 rounded-2xl"
-                style={{
-                  backgroundColor: "var(--bg-card)",
-                  border: "1px solid var(--border)",
-                }}
-              >
-                <h4
-                  className="text-xs font-bold uppercase tracking-widest mb-3"
-                  style={{ color: "var(--fg-muted)" }}
-                >
-                  Employers & Sectors to Explore
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    "Bytebeam",
-                    "Navalt Green Mobility",
-                    "Automotive & EV",
-                    "Robotics companies",
-                    "Industrial product teams",
-                    "Embedded product startups",
-                  ].map((c) => (
-                    <span
-                      key={c}
-                      className="text-xs px-2.5 py-1 rounded-full font-medium"
-                      style={{
-                        backgroundColor: "var(--bg-muted)",
-                        color: "var(--fg-muted)",
-                        border: "1px solid var(--border)",
-                      }}
-                    >
-                      {c}
-                    </span>
-                  ))}
-                </div>
-                <p
-                  className="text-xs leading-relaxed mt-3"
-                  style={{ color: "var(--fg-muted)" }}
-                >
-                  Research preferences only; no application, offer, employment,
-                  or affiliation is implied.
-                </p>
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── EDUCATION ───────────────────────────────────────────────────────────────
-
-function Education() {
-  return (
-    <section
-      id="education"
-      className="py-24"
-      style={{ backgroundColor: "var(--bg-muted)" }}
-    >
-      <div className="max-w-3xl mx-auto px-4 sm:px-6">
-        <SectionHeader
-          label="Timeline"
-          title="Education & Internship Objective"
-          subtitle="The academic foundation and next practical step supporting an embedded and firmware career."
-        />
-        <div className="relative">
-          <div
-            className="absolute left-5 top-2 bottom-2 w-px"
-            style={{ backgroundColor: "var(--border)" }}
-          />
-          <div className="space-y-6">
-            {EDUCATION.map((item, i) => (
-              <FadeIn key={i} delay={i * 90}>
-                <div className="relative flex gap-6 pl-14">
-                  <div
-                    className="absolute left-3.5 top-4 w-3 h-3 rounded-full -translate-x-1/2"
-                    style={{
-                      backgroundColor: TYPE_COLORS[item.type],
-                      boxShadow: `0 0 0 3px var(--bg-muted), 0 0 0 5px ${TYPE_COLORS[item.type]}40`,
-                    }}
-                  />
-                  <div
-                    className="flex-1 p-5 rounded-2xl"
-                    style={{
-                      backgroundColor: "var(--bg-card)",
-                      border: "1px solid var(--border)",
-                      borderLeft: `3px solid ${TYPE_COLORS[item.type]}`,
-                      boxShadow: item.highlight
-                        ? `0 4px 24px ${TYPE_COLORS[item.type]}18`
-                        : "var(--shadow-sm)",
-                    }}
-                  >
-                    <div className="flex flex-wrap justify-between gap-2 mb-1.5">
-                      <div>
-                        <h3
-                          className="text-sm font-bold"
-                          style={{
-                            color: "var(--fg)",
-                            fontFamily: "var(--font-display)",
-                          }}
-                        >
-                          {item.title}
-                        </h3>
-                        <p
-                          className="text-xs mt-0.5"
-                          style={{ color: "var(--fg-muted)" }}
-                        >
-                          {item.institution} · {item.location}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span
-                          className="text-xs font-semibold px-2 py-0.5 rounded-full"
-                          style={{
-                            color: TYPE_COLORS[item.type],
-                            backgroundColor: `${TYPE_COLORS[item.type]}15`,
-                          }}
-                        >
-                          {TYPE_LABELS[item.type]}
-                        </span>
-                        <span
-                          className="text-xs font-medium"
-                          style={{ color: "var(--fg-muted)" }}
-                        >
-                          {item.year}
-                        </span>
-                      </div>
-                    </div>
-                    <p
-                      className="text-xs leading-relaxed"
-                      style={{ color: "var(--fg-muted)" }}
-                    >
-                      {item.description}
-                    </p>
-                  </div>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── SKILLS ──────────────────────────────────────────────────────────────────
-
-function Skills() {
-  const [active, setActive] = useState<string | null>(null)
-  const cat = SKILL_CATEGORIES.find((c) => c.id === active)
-
-  return (
-    <section
-      id="skills"
-      className="py-24"
-      style={{ backgroundColor: "var(--bg)" }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <SectionHeader
-          label="Technical Skills"
-          title="Prioritized Learning Map"
-          subtitle="Skills are separated by evidence and learning stage so roadmap items are not mistaken for professional proficiency."
-        />
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-          {SKILL_CATEGORIES.map((c, i) => (
-            <FadeIn key={c.id} delay={i * 55}>
-              <button
-                onClick={() => setActive(active === c.id ? null : c.id)}
-                className="w-full text-left p-5 rounded-2xl transition-all hover:scale-[1.025]"
-                style={{
-                  backgroundColor: active === c.id ? c.color : "var(--bg-card)",
-                  border: `1px solid ${
-                    active === c.id ? c.color : "var(--border)"
-                  }`,
-                  boxShadow:
-                    active === c.id
-                      ? `0 8px 32px ${c.color}35`
-                      : "var(--shadow-sm)",
-                  cursor: "pointer",
-                }}
-              >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 text-xs font-bold"
-                  style={{
-                    backgroundColor:
-                      active === c.id ? "rgba(255,255,255,0.2)" : c.bg,
-                    color: active === c.id ? "white" : c.color,
-                  }}
-                >
-                  {c.icon}
-                </div>
-                <h3
-                  className="text-sm font-bold mb-1"
-                  style={{
-                    color: active === c.id ? "white" : "var(--fg)",
-                    fontFamily: "var(--font-display)",
-                  }}
-                >
-                  {c.label}
-                </h3>
-                <p
-                  className="text-xs"
-                  style={{
-                    color: active === c.id ? "rgba(255,255,255,0.72)" : c.color,
-                  }}
-                >
-                  {c.status}
-                </p>
-              </button>
-            </FadeIn>
-          ))}
-        </div>
-
-        {cat && (
-          <div
-            className="p-6 rounded-2xl"
-            style={{
-              backgroundColor: "var(--bg-card)",
-              border: `1px solid ${cat.color}35`,
-              boxShadow: `0 8px 32px ${cat.color}12`,
-              animation: "fadeInUp 0.3s ease",
-            }}
-          >
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3
-                    className="font-bold text-base"
-                    style={{
-                      color: "var(--fg)",
-                      fontFamily: "var(--font-display)",
-                    }}
-                  >
-                    {cat.label}
-                  </h3>
-                  <Tag color={cat.color}>{cat.status}</Tag>
-                </div>
-                <p
-                  className="text-xs mt-1 max-w-lg"
-                  style={{ color: "var(--fg-muted)" }}
-                >
-                  {cat.desc}
-                </p>
-              </div>
-              <button
-                onClick={() => setActive(null)}
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-xs flex-shrink-0"
-                style={{
-                  color: "var(--fg-muted)",
-                  backgroundColor: "var(--bg-muted)",
-                  border: "1px solid var(--border)",
-                }}
-              >
-                ✕
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2 mt-4">
-              {cat.skills.map((skill) => (
-                <span
-                  key={skill}
-                  className="px-3 py-1.5 rounded-lg text-sm font-semibold"
-                  style={{
-                    backgroundColor: `${cat.color}12`,
-                    color: cat.color,
-                    border: `1px solid ${cat.color}22`,
-                  }}
-                >
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </section>
-  )
-}
-
-// ─── PROJECTS ────────────────────────────────────────────────────────────────
-
-function Projects() {
-  const [expanded, setExpanded] = useState<number | null>(null)
-
-  return (
-    <section
-      id="projects"
-      className="py-24"
-      style={{ backgroundColor: "var(--bg-muted)" }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <SectionHeader
-          label="Portfolio"
-          title="Relevant Existing Projects"
-          subtitle="Embedded and control-oriented work prioritized for the new career direction, with clear separation between firmware-adjacent and control-systems experience."
-        />
-        <div className="space-y-5">
-          {PROJECTS.map((p, i) => (
-            <FadeIn key={p.id} delay={i * 70}>
-              <div
-                className="rounded-2xl overflow-hidden"
-                style={{
-                  backgroundColor: "var(--bg-card)",
-                  border: "1px solid var(--border)",
-                  boxShadow:
-                    expanded === p.id ? "var(--shadow-lg)" : "var(--shadow-sm)",
-                  transition: "box-shadow 0.3s ease",
-                }}
-              >
-                <div
-                  className="grid md:grid-cols-3 cursor-pointer"
-                  onClick={() => setExpanded(expanded === p.id ? null : p.id)}
-                >
-                  <div
-                    className="relative h-48 md:h-auto overflow-hidden"
-                    style={{ backgroundColor: "#CBD5E1" }}
-                  >
-                    <img
-                      src={p.image}
-                      alt={p.title}
-                      className="w-full h-full object-cover"
-                      style={{ opacity: 0.88, transition: "opacity 0.3s" }}
-                    />
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        background: `linear-gradient(135deg, ${p.color}28, transparent)`,
-                      }}
-                    />
-                    <div className="absolute top-3 left-3">
-                      <Tag color={p.color}>{p.category}</Tag>
-                    </div>
-                  </div>
-                  <div className="md:col-span-2 p-6 flex flex-col justify-between">
-                    <div>
-                      <h3
-                        className="text-base font-bold mb-2"
-                        style={{
-                          color: "var(--fg)",
-                          fontFamily: "var(--font-display)",
-                        }}
-                      >
-                        {p.title}
-                      </h3>
-                      <p
-                        className="text-sm leading-relaxed mb-4"
-                        style={{ color: "var(--fg-muted)" }}
-                      >
-                        {p.description}
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {p.tags.map((t) => (
-                          <Tag key={t} color={p.color}>
-                            {t}
-                          </Tag>
-                        ))}
-                      </div>
-                    </div>
-                    <div
-                      className="flex items-center justify-between mt-4 pt-4"
-                      style={{ borderTop: "1px solid var(--border)" }}
-                    >
-                      <span
-                        className="text-xs"
-                        style={{ color: "var(--fg-muted)" }}
-                      >
-                        {expanded === p.id
-                          ? "Click to collapse"
-                          : "Click to see full technical details"}
-                      </span>
-                      <span
-                        className="text-xs font-bold"
-                        style={{ color: p.color }}
-                      >
-                        {expanded === p.id ? "↑ Collapse" : "↓ Expand"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                {expanded === p.id && (
-                  <div
-                    className="px-6 pb-6 border-t pt-5"
-                    style={{ borderColor: "var(--border)" }}
-                  >
-                    <div className="grid md:grid-cols-2 gap-4 mb-4">
-                      <div
-                        className="p-4 rounded-xl"
-                        style={{
-                          backgroundColor: "var(--bg-muted)",
-                          border: "1px solid var(--border)",
-                        }}
-                      >
-                        <h4
-                          className="text-xs font-bold uppercase tracking-widest mb-2"
-                          style={{ color: "var(--fg-muted)" }}
-                        >
-                          Problem Statement
-                        </h4>
-                        <p
-                          className="text-sm leading-relaxed"
-                          style={{ color: "var(--fg)" }}
-                        >
-                          {p.problem}
-                        </p>
-                      </div>
-                      <div
-                        className="p-4 rounded-xl"
-                        style={{
-                          backgroundColor: "var(--bg-muted)",
-                          border: "1px solid var(--border)",
-                        }}
-                      >
-                        <h4
-                          className="text-xs font-bold uppercase tracking-widest mb-2"
-                          style={{ color: "var(--fg-muted)" }}
-                        >
-                          Engineering Solution
-                        </h4>
-                        <p
-                          className="text-sm leading-relaxed"
-                          style={{ color: "var(--fg)" }}
-                        >
-                          {p.solution}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-3">
-                      <span
-                        className="px-3 py-2 rounded-lg text-xs font-semibold"
-                        style={{
-                          color: "var(--fg-muted)",
-                          backgroundColor: "var(--bg-muted)",
-                          border: "1px solid var(--border)",
-                        }}
-                      >
-                        Documentation link not provided
-                      </span>
-                      <span
-                        className="px-3 py-2 rounded-lg text-xs font-semibold"
-                        style={{
-                          color: "var(--fg-muted)",
-                          backgroundColor: "var(--bg-muted)",
-                          border: "1px solid var(--border)",
-                        }}
-                      >
-                        Repository link not provided
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── EXPERIENCE ──────────────────────────────────────────────────────────────
-
-function Experience() {
-  return (
-    <section
-      id="experience"
-      className="py-24"
-      style={{ backgroundColor: "var(--bg)" }}
-    >
-      <div className="max-w-3xl mx-auto px-4 sm:px-6">
-        <SectionHeader
-          label="Experience"
-          title="Engineering & Academic Experience"
-          subtitle="Existing training and academic contributions reframed around transferable technical analysis, documentation, teamwork, and problem-solving."
-        />
-        <div className="space-y-5">
-          {EXPERIENCE.map((item, i) => (
-            <FadeIn key={i} delay={i * 100}>
-              <div
-                className="p-6 rounded-2xl"
-                style={{
-                  backgroundColor: "var(--bg-card)",
-                  border: "1px solid var(--border)",
-                  borderLeft: `3px solid ${item.color}`,
-                }}
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
-                  <div>
-                    <h3
-                      className="text-sm font-bold"
-                      style={{
-                        color: "var(--fg)",
-                        fontFamily: "var(--font-display)",
-                      }}
-                    >
-                      {item.title}
-                    </h3>
-                    <p
-                      className="text-xs mt-0.5"
-                      style={{ color: "var(--fg-muted)" }}
-                    >
-                      {item.company}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <Tag color={item.color}>{item.type}</Tag>
-                    <span
-                      className="text-xs font-medium"
-                      style={{ color: "var(--fg-muted)" }}
-                    >
-                      {item.period}
-                    </span>
-                  </div>
-                </div>
-                <p
-                  className="text-sm leading-relaxed mb-4"
-                  style={{ color: "var(--fg-muted)" }}
-                >
-                  {item.description}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {item.highlights.map((h) => (
-                    <span
-                      key={h}
-                      className="text-xs px-2.5 py-1 rounded-full"
-                      style={{
-                        backgroundColor: "var(--bg-muted)",
-                        color: "var(--fg-muted)",
-                        border: "1px solid var(--border)",
-                      }}
-                    >
-                      {h}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── LEADERSHIP ──────────────────────────────────────────────────────────────
-
-function Leadership() {
-  return (
-    <section
-      id="leadership"
-      className="py-24"
-      style={{ backgroundColor: "var(--bg-muted)" }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <SectionHeader
-          label="Leadership"
-          title="Teamwork Beyond the Lab"
-          subtitle="Existing student leadership retained for the communication, coordination, and documentation skills valued in engineering teams."
-        />
-        <div className="grid md:grid-cols-3 gap-5">
-          {LEADERSHIP.map((item, i) => (
-            <FadeIn key={i} delay={i * 100}>
-              <div
-                className="p-6 rounded-2xl h-full flex flex-col"
-                style={{
-                  backgroundColor: "var(--bg-card)",
-                  border: "1px solid var(--border)",
-                  borderTop: `3px solid ${item.color}`,
-                }}
-              >
-                <div className="mb-4">
-                  <h3
-                    className="font-bold text-sm mb-1"
-                    style={{
-                      color: "var(--fg)",
-                      fontFamily: "var(--font-display)",
-                    }}
-                  >
-                    {item.role}
-                  </h3>
-                  <p
-                    className="text-xs font-semibold"
-                    style={{ color: item.color }}
-                  >
-                    {item.org}
-                  </p>
-                  <p
-                    className="text-xs mt-1"
-                    style={{ color: "var(--fg-muted)" }}
-                  >
-                    {item.period}
-                  </p>
-                </div>
-                <p
-                  className="text-sm leading-relaxed mb-5"
-                  style={{ color: "var(--fg-muted)" }}
-                >
-                  {item.description}
-                </p>
-                <div className="mt-auto space-y-2">
-                  {item.achievements.map((a) => (
-                    <div
-                      key={a}
-                      className="flex items-start gap-2 text-xs"
-                      style={{ color: "var(--fg-muted)" }}
-                    >
-                      <span
-                        className="font-bold mt-px"
-                        style={{ color: item.color }}
-                      >
-                        —
-                      </span>
-                      {a}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── CERTIFICATIONS ──────────────────────────────────────────────────────────
-
-function Certifications() {
-  const [filter, setFilter] = useState<string>("All")
-  const filtered =
-    filter === "All"
-      ? CERTIFICATIONS
-      : CERTIFICATIONS.filter((c) => c.type === filter)
-
-  return (
-    <section
-      id="certifications"
-      className="py-24"
-      style={{ backgroundColor: "var(--bg)" }}
-    >
-      <div className="max-w-5xl mx-auto px-4 sm:px-6">
-        <SectionHeader
-          label="Certifications"
-          title="Verified Credentials"
-          subtitle={`${CERTIFICATIONS.length} certificates across courses, internships, memberships, and IEEE activities.`}
-        />
-
-        {/* Filter pills */}
-        <FadeIn>
-          <div className="flex flex-wrap gap-2 justify-center mb-10">
-            {CERT_TYPES.map((t) => (
-              <button
-                key={t}
-                onClick={() => setFilter(t)}
-                className="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all"
-                style={{
-                  backgroundColor:
-                    filter === t ? "var(--primary)" : "var(--bg-card)",
-                  color: filter === t ? "#fff" : "var(--fg-muted)",
-                  border: `1px solid ${filter === t ? "var(--primary)" : "var(--border)"}`,
-                }}
-              >
-                {t}
-                {t !== "All" && (
-                  <span className="ml-1 opacity-60">
-                    ({CERTIFICATIONS.filter((c) => c.type === t).length})
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </FadeIn>
-
-        {/* Certificate cards */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((cert, i) => (
-            <FadeIn key={i}>
-              <div
-                className="p-5 rounded-2xl h-full flex flex-col"
-                style={{
-                  backgroundColor: "var(--bg-card)",
-                  border: "1px solid var(--border)",
-                  boxShadow: "var(--shadow-sm)",
-                }}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <span
-                    className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
-                    style={{
-                      backgroundColor: cert.color + "18",
-                      color: cert.color,
-                    }}
-                  >
-                    {cert.type}
-                  </span>
-                  <span
-                    className="text-[11px] font-medium"
-                    style={{ color: "var(--fg-muted)" }}
-                  >
-                    {cert.date}
-                  </span>
-                </div>
-                <h3
-                  className="font-bold text-sm mb-1 leading-snug"
-                  style={{
-                    color: "var(--fg)",
-                    fontFamily: "var(--font-display)",
-                  }}
-                >
-                  {cert.title}
-                </h3>
-                <p
-                  className="text-xs font-medium mb-2"
-                  style={{ color: cert.color }}
-                >
-                  {cert.issuer}
-                </p>
-                <p
-                  className="text-xs leading-relaxed mt-auto"
-                  style={{ color: "var(--fg-muted)" }}
-                >
-                  {cert.description}
-                </p>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-
-        {filtered.length === 0 && (
-          <p
-            className="text-center text-sm py-12"
-            style={{ color: "var(--fg-muted)" }}
-          >
-            No certificates in this category.
-          </p>
-        )}
-      </div>
-    </section>
-  )
-}
-
-// ─── GALLERY ─────────────────────────────────────────────────────────────────
-
-function Gallery() {
-  const [lightbox, setLightbox] = useState<typeof GALLERY_IMAGES[0] | null>(
-    null,
-  )
-
-  useEffect(() => {
-    const fn = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLightbox(null)
-    }
-    window.addEventListener("keydown", fn)
-    return () => window.removeEventListener("keydown", fn)
-  }, [])
-
-  return (
-    <section
-      id="gallery"
-      className="py-24"
-      style={{ backgroundColor: "var(--bg-muted)" }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <SectionHeader
-          label="Visual Library"
-          title="Engineering Interests"
-          subtitle="Reference imagery representing embedded hardware, mobility, robotics, and engineering teamwork—not personal project documentation."
-        />
-        <div className="columns-2 md:columns-3 gap-4">
-          {GALLERY_IMAGES.map((img, i) => (
-            <FadeIn key={img.id} delay={i * 45}>
-              <div
-                className="break-inside-avoid mb-4 rounded-xl overflow-hidden cursor-pointer transition-all hover:scale-[1.015] hover:shadow-xl"
-                onClick={() => setLightbox(img)}
-                style={{ backgroundColor: "#CBD5E1" }}
-              >
-                <img
-                  src={img.src}
-                  alt={img.alt}
-                  className="w-full block"
-                  loading="lazy"
-                />
-                <div
-                  className="px-3 py-2.5"
-                  style={{ backgroundColor: "var(--bg-card)" }}
-                >
-                  <p
-                    className="text-xs font-semibold"
-                    style={{ color: "var(--fg)" }}
-                  >
-                    {img.alt}
-                  </p>
-                  <p className="text-xs" style={{ color: "var(--fg-muted)" }}>
-                    {img.cat}
-                  </p>
-                </div>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-
-      {lightbox && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: "rgba(0,0,0,0.88)" }}
-          onClick={() => setLightbox(null)}
-        >
-          <div
-            className="max-w-3xl w-full rounded-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              src={lightbox.src
-                .replace("w=500", "w=1200")
-                .replace("h=380", "h=900")
-                .replace("h=620", "h=900")
-                .replace("h=360", "h=700")
-                .replace("h=440", "h=900")
-                .replace("h=560", "h=900")
-                .replace("h=400", "h=800")
-                .replace("h=340", "h=700")}
-              alt={lightbox.alt}
-              className="w-full"
-            />
-            <div className="p-4" style={{ backgroundColor: "var(--bg-card)" }}>
-              <p
-                className="font-semibold text-sm"
-                style={{ color: "var(--fg)" }}
-              >
-                {lightbox.alt}
-              </p>
-              <p
-                className="text-xs mt-0.5"
-                style={{ color: "var(--fg-muted)" }}
-              >
-                {lightbox.cat}
-              </p>
-            </div>
-          </div>
-          <button
-            className="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center text-white text-lg"
-            style={{
-              backgroundColor: "rgba(255,255,255,0.1)",
-              backdropFilter: "blur(8px)",
-            }}
-            onClick={() => setLightbox(null)}
-          >
-            ✕
-          </button>
-        </div>
-      )}
-    </section>
-  )
-}
-
-// ─── CONTACT ─────────────────────────────────────────────────────────────────
-
-function Contact() {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  })
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const subject = encodeURIComponent(
-      form.subject || "Embedded / firmware internship conversation",
-    )
-    const body = encodeURIComponent(
-      `Name: ${form.name}\nEmail: ${form.email}\n\n${form.message}`,
-    )
-    window.location.href = `mailto:sanjugrehi@gmail.com?subject=${subject}&body=${body}`
-  }
-
-  const inputStyle = {
-    backgroundColor: "var(--bg-muted)",
-    border: "1px solid var(--border)",
-    color: "var(--fg)",
-    outline: "none",
-    transition: "border-color 0.2s",
+    setMobileMenuOpen(false)
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
   }
 
   return (
-    <section
-      id="contact"
-      className="py-24"
-      style={{ backgroundColor: "var(--bg)" }}
-    >
-      <div className="max-w-5xl mx-auto px-4 sm:px-6">
-        <SectionHeader
-          label="Contact"
-          title="Start an Engineering Conversation"
-          subtitle="Recruiters and engineering teams are welcome to discuss six-month embedded, firmware, robotics, or IoT internship opportunities for January–June 2027."
-        />
-        <div className="grid lg:grid-cols-5 gap-10">
-          <FadeIn className="lg:col-span-2">
-            <div className="space-y-3">
-              {[
-                {
-                  label: "Email",
-                  value: "sanjugrehi@gmail.com",
-                  color: "#2563EB",
-                  href: "mailto:sanjugrehi@gmail.com",
-                  icon: "E",
-                },
-                {
-                  label: "LinkedIn",
-                  value: "linkedin.com/in/sanju-grehi",
-                  color: "#0A66C2",
-                  href: "https://linkedin.com/in/sanju-grehi",
-                  icon: "in",
-                },
-                {
-                  label: "GitHub",
-                  value: "github.com/sanjugrehi",
-                  color: "#333",
-                  href: "https://github.com/sanjugrehi",
-                  icon: "GH",
-                },
-                {
-                  label: "Location",
-                  value: "Kerala, India",
-                  color: "#16A34A",
-                  href: null,
-                  icon: "IN",
-                },
-              ].map(({ label, value, color, href, icon }) => (
-                <a
-                  key={label}
-                  href={href || undefined}
-                  target={href ? "_blank" : undefined}
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-4 p-4 rounded-xl transition-all hover:scale-[1.015]"
-                  style={{
-                    backgroundColor: "var(--bg-card)",
-                    border: "1px solid var(--border)",
-                    textDecoration: "none",
-                    cursor: href ? "pointer" : "default",
-                  }}
-                >
-                  <div
-                    className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                    style={{ backgroundColor: color }}
-                  >
-                    {icon}
-                  </div>
-                  <div>
-                    <div
-                      className="text-xs font-semibold mb-0.5"
-                      style={{ color: "var(--fg-muted)" }}
-                    >
-                      {label}
-                    </div>
-                    <div
-                      className="text-xs font-medium"
-                      style={{ color: "var(--fg)" }}
-                    >
-                      {value}
-                    </div>
-                  </div>
-                </a>
-              ))}
-              <div
-                className="p-4 rounded-xl mt-2"
-                style={{
-                  backgroundColor: "var(--primary-light)",
-                  border: "1px solid var(--primary)28",
-                }}
-              >
-                <p
-                  className="text-xs font-semibold mb-1"
-                  style={{ color: "var(--primary)" }}
-                >
-                  Actively seeking
-                </p>
-                <div className="space-y-1">
-                  {[
-                    "Embedded Systems Intern",
-                    "Firmware Engineering Intern",
-                    "Robotics Intern",
-                    "IoT / Embedded Systems Intern",
-                  ].map((t) => (
-                    <p
-                      key={t}
-                      className="text-xs"
-                      style={{ color: "var(--primary)" }}
-                    >
-                      · {t}
-                    </p>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </FadeIn>
-          <FadeIn delay={150} className="lg:col-span-3">
-            <form
-              onSubmit={handleSubmit}
-              className="p-6 rounded-2xl"
-              style={{
-                backgroundColor: "var(--bg-card)",
-                border: "1px solid var(--border)",
-              }}
-            >
-              <h3
-                className="font-bold mb-2"
-                style={{
-                  color: "var(--fg)",
-                  fontFamily: "var(--font-display)",
-                }}
-              >
-                Draft an Email
-              </h3>
-              <p
-                className="text-xs leading-relaxed mb-5"
-                style={{ color: "var(--fg-muted)" }}
-              >
-                Submitting this form opens your email app with the message
-                prefilled. The website does not store or send form data.
-              </p>
-              <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                {[
-                  {
-                    field: "name",
-                    label: "Name",
-                    placeholder: "Your name",
-                    type: "text",
-                  },
-                  {
-                    field: "email",
-                    label: "Email",
-                    placeholder: "your@email.com",
-                    type: "email",
-                  },
-                ].map(({ field, label, placeholder, type }) => (
-                  <div key={field}>
-                    <label
-                      className="block text-xs font-semibold mb-1.5"
-                      style={{ color: "var(--fg-muted)" }}
-                    >
-                      {label}
-                    </label>
-                    <input
-                      type={type}
-                      required
-                      placeholder={placeholder}
-                      value={form[(field as keyof typeof form)]}
-                      onChange={(e) =>
-                        setForm({ ...form, [field]: e.target.value })
-                      }
-                      className="w-full px-3 py-2.5 rounded-lg text-sm"
-                      style={inputStyle}
-                    />
-                  </div>
-                ))}
-              </div>
-              <div className="mb-4">
-                <label
-                  className="block text-xs font-semibold mb-1.5"
-                  style={{ color: "var(--fg-muted)" }}
-                >
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  placeholder="Internship opportunity / Collaboration / General inquiry"
-                  value={form.subject}
-                  onChange={(e) =>
-                    setForm({ ...form, subject: e.target.value })
-                  }
-                  className="w-full px-3 py-2.5 rounded-lg text-sm"
-                  style={inputStyle}
-                />
-              </div>
-              <div className="mb-5">
-                <label
-                  className="block text-xs font-semibold mb-1.5"
-                  style={{ color: "var(--fg-muted)" }}
-                >
-                  Message
-                </label>
-                <textarea
-                  rows={4}
-                  required
-                  placeholder="Tell me about the opportunity or what you'd like to discuss..."
-                  value={form.message}
-                  onChange={(e) =>
-                    setForm({ ...form, message: e.target.value })
-                  }
-                  className="w-full px-3 py-2.5 rounded-lg text-sm resize-none"
-                  style={inputStyle}
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-[1.01]"
-                style={{
-                  background: "linear-gradient(135deg, #2563EB, #1D4ED8)",
-                  boxShadow: "0 4px 20px rgba(37,99,235,0.3)",
-                }}
-              >
-                Open Email Draft
-              </button>
-            </form>
-          </FadeIn>
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-cyan-500 selection:text-black">
+      {/* ─── SYSTEM TOP TELEMETRY BAR ────────────────────────────────────────── */}
+      <div className="w-full bg-slate-900 border-b border-slate-800 text-[11px] font-mono px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 text-slate-400">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-slate-200 font-bold">PORTFOLIO NODE ONLINE</span>
+          </div>
+          <span className="text-slate-700 hidden sm:inline">|</span>
+          <span className="text-slate-400 hidden sm:inline">B.TECH EEE (2024–2028) · SAHRDAYA CET</span>
+          <span className="text-slate-700 hidden md:inline">|</span>
+          <span className="text-cyan-400 hidden md:inline">INTERNSHIP TARGET: JAN–JUN 2027</span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <span className="text-slate-500 hidden lg:inline">LOCATION: THexampleR / KERALA, INDIA</span>
+          <span className="text-slate-700 hidden lg:inline">|</span>
+          <span className="text-emerald-400 font-semibold">20 VERIFIED CREDENTIALS</span>
         </div>
       </div>
-    </section>
-  )
-}
 
-// ─── FOOTER ──────────────────────────────────────────────────────────────────
-
-function Footer() {
-  return (
-    <footer
-      className="py-8 border-t"
-      style={{
-        backgroundColor: "var(--bg-muted)",
-        borderColor: "var(--border)",
-      }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-5">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-              style={{
-                background: "linear-gradient(135deg, #2563EB, #0EA5E9)",
-              }}
-            >
+      {/* ─── MAIN NAVIGATION ─────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          {/* Logo / Brand */}
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => scrollTo("hero")}>
+            <div className="w-9 h-9 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center font-mono font-bold text-cyan-400 text-sm shadow-inner">
               SG
             </div>
             <div>
-              <p
-                className="text-sm font-bold"
-                style={{
-                  color: "var(--fg)",
-                  fontFamily: "var(--font-display)",
-                }}
-              >
-                Sanju Grehi
-              </p>
-              <p className="text-xs" style={{ color: "var(--fg-muted)" }}>
-                Embedded Systems & Firmware · Kerala, India
-              </p>
+              <div className="font-bold text-slate-100 text-sm tracking-tight leading-tight">SANJU GREHI</div>
+              <div className="text-[10px] font-mono text-slate-400 leading-none">EMBEDDED &amp; FIRMWARE</div>
             </div>
           </div>
-          <div className="flex items-center gap-5 flex-wrap justify-center">
-            {NAV_LINKS.slice(0, 6).map((link) => (
-              <button
-                key={link}
-                onClick={() =>
-                  document
-                    .getElementById(link.toLowerCase())
-                    ?.scrollIntoView({ behavior: "smooth" })
-                }
-                className="text-xs transition-opacity hover:opacity-100"
-                style={{ color: "var(--fg)", opacity: 0.5 }}
+
+          {/* Desktop Nav Items */}
+          <nav className="hidden lg:flex items-center gap-6 font-mono text-xs text-slate-300">
+            <button onClick={() => scrollTo("workbench")} className="hover:text-cyan-400 transition-colors">
+              3D WORKBENCH
+            </button>
+            <button onClick={() => scrollTo("projects")} className="hover:text-cyan-400 transition-colors">
+              HARDWARE LAB
+            </button>
+            <button onClick={() => scrollTo("skills")} className="hover:text-cyan-400 transition-colors">
+              SKILLS MATRIX
+            </button>
+            <button onClick={() => scrollTo("education")} className="hover:text-cyan-400 transition-colors">
+              EDUCATION &amp; INTERNSHIP
+            </button>
+            <button onClick={() => scrollTo("certifications")} className="hover:text-cyan-400 transition-colors">
+              CERTIFICATIONS (20)
+            </button>
+            <button onClick={() => scrollTo("terminal")} className="hover:text-cyan-400 transition-colors">
+              CLI TERMINAL
+            </button>
+          </nav>
+
+          {/* Actions & Mobile Menu Toggle */}
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => scrollTo("contact")}
+              className="px-3.5 py-1.5 rounded-lg bg-cyan-950 border border-cyan-500/80 text-cyan-300 text-xs font-mono font-semibold hover:bg-cyan-900/80 transition-all hidden sm:inline-flex"
+            >
+              CONTACT
+            </button>
+
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 lg:hidden"
+              aria-label="Toggle menu"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Dropdown Menu */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden border-b border-slate-800 bg-slate-950 px-4 py-4 space-y-2 font-mono text-xs">
+            <button
+              onClick={() => scrollTo("workbench")}
+              className="block w-full text-left py-2 text-slate-300 hover:text-cyan-400"
+            >
+              &gt; 3D WORKBENCH
+            </button>
+            <button
+              onClick={() => scrollTo("projects")}
+              className="block w-full text-left py-2 text-slate-300 hover:text-cyan-400"
+            >
+              &gt; HARDWARE LAB
+            </button>
+            <button
+              onClick={() => scrollTo("skills")}
+              className="block w-full text-left py-2 text-slate-300 hover:text-cyan-400"
+            >
+              &gt; SKILLS MATRIX
+            </button>
+            <button
+              onClick={() => scrollTo("education")}
+              className="block w-full text-left py-2 text-slate-300 hover:text-cyan-400"
+            >
+              &gt; EDUCATION &amp; INTERNSHIP
+            </button>
+            <button
+              onClick={() => scrollTo("certifications")}
+              className="block w-full text-left py-2 text-slate-300 hover:text-cyan-400"
+            >
+              &gt; CERTIFICATIONS (20)
+            </button>
+            <button
+              onClick={() => scrollTo("terminal")}
+              className="block w-full text-left py-2 text-slate-300 hover:text-cyan-400"
+            >
+              &gt; CLI TERMINAL
+            </button>
+            <button
+              onClick={() => scrollTo("contact")}
+              className="block w-full text-left py-2 text-cyan-400 font-bold"
+            >
+              &gt; CONTACT / HIRE
+            </button>
+          </div>
+        )}
+      </header>
+
+      {/* ─── HERO SECTION ────────────────────────────────────────────────────── */}
+      <section id="hero" className="relative pt-12 pb-16 sm:pt-20 sm:pb-24 border-b border-slate-800/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid gap-12 lg:grid-cols-12 items-center">
+            {/* Left Column: Headlines & Pitch */}
+            <div className="lg:col-span-7 space-y-6">
+              {/* Engineering Status Pill */}
+              <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-xs font-mono">
+                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                <span className="text-slate-300">
+                  ELECTRICAL &amp; ELECTRONICS ENGINEERING · 2024–2028
+                </span>
+              </div>
+
+              {/* Main Name & Title */}
+              <div>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-100 tracking-tight leading-none">
+                  Sanju Grehi
+                </h1>
+                <div className="text-lg sm:text-xl font-mono text-cyan-400 mt-3 font-semibold">
+                  Embedded Systems, Firmware &amp; Robotics Engineer
+                </div>
+              </div>
+
+              {/* Concise Human Technical Summary */}
+              <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl">
+                B.Tech EEE undergraduate at Sahrdaya College of Engineering &amp; Technology, Kerala.
+                I build practical embedded hardware and firmware in Embedded C/C++, focusing on microcontroller
+                programming (STM32, ESP32, ARM Cortex-M), bus protocols (CAN, SPI, I2C, UART), and intelligent robotics.
+              </p>
+
+              {/* Key Highlights Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
+                <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800">
+                  <div className="text-slate-500 text-[10px]">DEGREE WINDOW</div>
+                  <div className="text-slate-200 font-bold mt-0.5">2024 – 2028</div>
+                  <div className="text-slate-400 text-[10px]">B.Tech EEE</div>
+                </div>
+                <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800">
+                  <div className="text-slate-500 text-[10px]">INTERNSHIP</div>
+                  <div className="text-cyan-400 font-bold mt-0.5">JAN – JUN 2027</div>
+                  <div className="text-slate-400 text-[10px]">6 Months Full-Time</div>
+                </div>
+                <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800">
+                  <div className="text-slate-500 text-[10px]">CREDENTIALS</div>
+                  <div className="text-emerald-400 font-bold mt-0.5">20 VERIFIED</div>
+                  <div className="text-slate-400 text-[10px]">IEEE, NIELIT, KSEB</div>
+                </div>
+                <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800">
+                  <div className="text-slate-500 text-[10px]">LOCATION</div>
+                  <div className="text-amber-400 font-bold mt-0.5">KERALA / TECH HUBS</div>
+                  <div className="text-slate-400 text-[10px]">Kerala First · BLR</div>
+                </div>
+              </div>
+
+              {/* Primary Call to Actions */}
+              <div className="flex flex-wrap items-center gap-3 pt-2 font-mono text-xs">
+                <button
+                  onClick={() => scrollTo("workbench")}
+                  className="px-5 py-3 rounded-xl bg-cyan-500 text-slate-950 font-bold hover:bg-cyan-400 transition-all shadow-lg shadow-cyan-950 flex items-center gap-2"
+                >
+                  <span>TEST 3D HARDWARE</span>
+                  <span>&darr;</span>
+                </button>
+                <button
+                  onClick={() => scrollTo("projects")}
+                  className="px-5 py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-semibold hover:bg-slate-850 hover:border-slate-600 transition-all"
+                >
+                  EXPLORE PROJECTS
+                </button>
+                <a
+                  href="https://github.com/SanjuGrehi"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-100 hover:border-slate-700 transition-all"
+                >
+                  GITHUB
+                </a>
+                <a
+                  href="https://linkedin.com/in/sanju-grehi-b4618731b"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-100 hover:border-slate-700 transition-all"
+                >
+                  LINKEDIN
+                </a>
+              </div>
+            </div>
+
+            {/* Right Column: Interactive Hardware Summary Badge */}
+            <div className="lg:col-span-5">
+              <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl space-y-4 font-mono text-xs">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                  <span className="text-slate-400 font-bold uppercase tracking-wider">HARDWARE SPEC SHEET</span>
+                  <span className="text-[10px] text-emerald-400 bg-emerald-950/70 border border-emerald-800 px-2 py-0.5 rounded">
+                    TESTED PROTOTYPES
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="text-slate-400">CORE SILICON:</span>
+                    <span className="text-slate-100 font-bold text-right">STM32F401 (Cortex-M4) &amp; ESP32</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="text-slate-400">CLOCK SPEEDS:</span>
+                    <span className="text-slate-100 text-right">84 MHz (STM32) / 240 MHz (ESP32)</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="text-slate-400">BUS PROTOCOLS:</span>
+                    <span className="text-cyan-400 font-semibold text-right">CAN 2.0B · SPI · I2C · UART · MQTT</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="text-slate-400">KEY HARDWARE:</span>
+                    <span className="text-slate-200 text-right">CT Clamp Sensors, RFID Transponders, PLC Logic</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="text-slate-400">AWARDS:</span>
+                    <span className="text-emerald-400 font-bold text-right">Best Project Award (E-Savu, 2024-25)</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="text-slate-400">LEADERSHIP:</span>
+                    <span className="text-slate-200 text-right">Secretary, IEEE Signal Processing Society '25</span>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
+                  <span>DEV ENVIRONMENT: GCC / ST-LINK / ESP-IDF</span>
+                  <span className="text-cyan-400">100% HAND-CRAFTED</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── SECTION 1: 3D HARDWARE WORKBENCH + LOGIC ANALYZER ───────────────── */}
+      <section id="workbench" className="py-20 sm:py-24 border-b border-slate-800/80 bg-slate-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
+          <div>
+            <div className="flex items-center gap-2 mb-2 font-mono text-xs text-cyan-400">
+              <span className="w-2 h-2 rounded-full bg-cyan-400" />
+              <span>INTERACTIVE 3D SILICON BENCH</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">
+              STM32 Embedded Development Board &amp; Signal Inspector
+            </h2>
+            <p className="text-slate-400 text-sm sm:text-base mt-2 max-w-3xl leading-relaxed">
+              Drag to rotate the 3D development board in 360-degree space, zoom in to inspect SMD components,
+              and click any gold pin header to attach the digital logic probe. Watch the real-time oscilloscope
+              waveform respond to your selected pin and firmware mode.
+            </p>
+          </div>
+
+          {/* 3D Board and Logic Analyzer in Two Columns or Stacked */}
+          <div className="grid gap-6 lg:grid-cols-12 items-start">
+            {/* 3D Board Canvas (7 Cols) */}
+            <div className="lg:col-span-7">
+              <Hardware3D
+                activePin={activePin}
+                onSelectPin={(pin) => setActivePin(pin)}
+                isPowered={isPowered}
+                onTogglePower={() => setIsPowered(!isPowered)}
+                firmwareMode={firmwareMode}
+                onChangeMode={(mode) => setFirmwareMode(mode)}
+              />
+            </div>
+
+            {/* Companion Logic Analyzer (5 Cols) */}
+            <div className="lg:col-span-5">
+              <LogicAnalyzer activePin={activePin} isPowered={isPowered} firmwareMode={firmwareMode} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── SECTION 2: INTERACTIVE PROJECTS LAB ─────────────────────────────── */}
+      <section id="projects" className="py-20 sm:py-24 border-b border-slate-800/80 bg-slate-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
+          <div>
+            <div className="flex items-center gap-2 mb-2 font-mono text-xs text-emerald-400">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span>HARDWARE SIMULATION LAB</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">
+              Interactive Engineering Prototypes
+            </h2>
+            <p className="text-slate-400 text-sm sm:text-base mt-2 max-w-3xl leading-relaxed">
+              Test out the three flagship projects built during B.Tech coursework: swipe RFID tags,
+              toggle electrical loads on the smart energy meter, or trigger vehicle density and emergency
+              preemption on the adaptive traffic PLC.
+            </p>
+          </div>
+
+          {/* Interactive Project Simulators Component */}
+          <InteractiveProjects />
+        </div>
+      </section>
+
+      {/* ─── SECTION 3: SKILLS MATRIX ────────────────────────────────────────── */}
+      <section id="skills" className="py-20 sm:py-24 border-b border-slate-800/80 bg-slate-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-2 mb-2 font-mono text-xs text-blue-400">
+              <span className="w-2 h-2 rounded-full bg-blue-400" />
+              <span>SYSTEMATIC CAPABILITIES</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">
+              Engineering Skills &amp; Domain Knowledge
+            </h2>
+            <p className="text-slate-400 text-sm sm:text-base mt-2 leading-relaxed">
+              Divided into practical embedded competencies, targeted platforms, hardware buses,
+              and control systems foundations.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            {SKILL_DOMAINS.map((domain, i) => (
+              <div
+                key={i}
+                className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-col justify-between"
               >
-                {link}
-              </button>
+                <div>
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-800 font-mono text-xs">
+                    <span className="font-bold text-slate-200 uppercase tracking-wider">{domain.title}</span>
+                    <span className="text-[10px] text-slate-400">{domain.category}</span>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2.5 leading-relaxed">{domain.desc}</p>
+
+                  <div className="mt-5 space-y-3">
+                    {domain.skills.map((skill, si) => (
+                      <div
+                        key={si}
+                        className="p-3 rounded-xl bg-slate-950 border border-slate-850 flex flex-col sm:flex-row sm:items-center justify-between gap-1"
+                      >
+                        <div>
+                          <div className="font-bold text-slate-100 text-xs font-mono">{skill.name}</div>
+                          <div className="text-[11px] text-slate-400 leading-tight">{skill.note}</div>
+                        </div>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900 text-cyan-400 border border-slate-800 shrink-0 self-start sm:self-center">
+                          {skill.level}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
-          <p className="text-xs" style={{ color: "var(--fg-muted)" }}>
-            © 2026 Sanju Grehi
-          </p>
         </div>
-      </div>
-    </footer>
-  )
-}
+      </section>
 
-// ─── APP ─────────────────────────────────────────────────────────────────────
+      {/* ─── SECTION 4: EDUCATION & INTERNSHIP OBJECTIVE ──────────────────────── */}
+      <section id="education" className="py-20 sm:py-24 border-b border-slate-800/80 bg-slate-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid gap-12 lg:grid-cols-12 items-start">
+            {/* Left: Academic Credentials */}
+            <div className="lg:col-span-6 space-y-6">
+              <div>
+                <div className="flex items-center gap-2 mb-2 font-mono text-xs text-amber-400">
+                  <span className="w-2 h-2 rounded-full bg-amber-400" />
+                  <span>ACADEMIC FOUNDATION</span>
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">
+                  Education &amp; Institution
+                </h2>
+              </div>
 
-export default function App() {
-  const { dark, toggle } = useDarkMode()
+              <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="text-base font-bold text-slate-100">
+                      Bachelor of Technology (B.Tech)
+                    </h3>
+                    <div className="text-cyan-400 font-mono text-xs mt-0.5">
+                      Electrical &amp; Electronics Engineering
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-amber-950/80 text-amber-300 border border-amber-700">
+                    2024 – 2028
+                  </span>
+                </div>
 
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "var(--bg)",
-        color: "var(--fg)",
-      }}
-    >
-      <Nav dark={dark} toggleDark={toggle} />
-      <Hero />
-      <Stats />
-      <About />
-      <Education />
-      <Skills />
-      <Projects />
-      <Experience />
-      <Leadership />
-      <Certifications />
-      <Gallery />
-      <Contact />
-      <Footer />
+                <div className="text-slate-300 text-xs font-mono">
+                  Sahrdaya College of Engineering &amp; Technology
+                  <div className="text-slate-500 text-[11px]">Autonomous · Irinjalakuda, Kodakara P.O., Kerala, India</div>
+                </div>
+
+                <p className="text-slate-400 text-xs leading-relaxed pt-2 border-t border-slate-800">
+                  Comprehensive grounding in circuit analysis, control systems, power electronics,
+                  microcontroller interfacing, and robotics. Actively involved in IEEE student branch
+                  leadership as Secretary of IEEE Signal Processing Society (Execom '25).
+                </p>
+              </div>
+            </div>
+
+            {/* Right: 6-Month Internship Plan */}
+            <div className="lg:col-span-6 space-y-6">
+              <div>
+                <div className="flex items-center gap-2 mb-2 font-mono text-xs text-cyan-400">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                  <span>CAREER HORIZON</span>
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">
+                  Six-Month Internship Objective
+                </h2>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 font-mono text-xs">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                  <span className="text-slate-300 font-bold">TARGET: JANUARY – JUNE 2027</span>
+                  <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold">
+                    6 MONTHS DURATION
+                  </span>
+                </div>
+
+                <div className="space-y-3 text-slate-300">
+                  <div>
+                    <div className="text-slate-500 text-[10px]">TARGET ROLES:</div>
+                    <div className="font-bold text-slate-100 mt-0.5">
+                      Embedded Systems Intern · Firmware Engineer Intern · Robotics Intern
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-slate-500 text-[10px]">GEOGRAPHIC PREFERENCE:</div>
+                    <div className="text-slate-200 mt-0.5">
+                      Kerala (Kochi / Thrissur) preferred initially · Open to Bengaluru &amp; Indian technology hubs for strong technical mentorship.
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-slate-500 text-[10px]">CORE VALUE PROPOSITION:</div>
+                    <div className="text-slate-300 text-[11px] leading-relaxed mt-0.5">
+                      Hands-on capability in microcontroller debugging, peripheral drivers (UART, SPI, I2C, CAN),
+                      circuit prototyping, and willingness to tackle demanding bare-metal and real-time firmware tasks.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── SECTION 5: VERIFIED CERTIFICATIONS (ALL 20 CERTS) ────────────────── */}
+      <CertificationsSection />
+
+      {/* ─── SECTION 6: INTERACTIVE CLI TERMINAL ──────────────────────────────── */}
+      <section id="terminal" className="py-20 sm:py-24 border-b border-slate-800/80 bg-slate-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-2 mb-2 font-mono text-xs text-cyan-400">
+              <span className="w-2 h-2 rounded-full bg-cyan-400" />
+              <span>DIRECT SERIAL SHELL</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">
+              Interactive Firmware Terminal
+            </h2>
+            <p className="text-slate-400 text-sm sm:text-base mt-2 leading-relaxed font-sans">
+              For engineers and recruiters who prefer a command line: query skills, hardware pinouts,
+              project specifications, and contact coordinates directly from this virtual terminal.
+            </p>
+          </div>
+
+          <EngineeringTerminal />
+        </div>
+      </section>
+
+      {/* ─── SECTION 7: CONTACT & FOOTER ─────────────────────────────────────── */}
+      <footer id="contact" className="py-20 bg-slate-950 text-slate-300 font-mono text-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12">
+          <div className="grid gap-8 md:grid-cols-12 items-start">
+            <div className="md:col-span-6 space-y-3 font-sans">
+              <div className="text-xl font-bold text-slate-100">Sanju Grehi</div>
+              <p className="text-slate-400 text-sm max-w-md font-mono text-xs leading-relaxed">
+                Electrical &amp; Electronics Engineering student specializing in embedded firmware,
+                microcontrollers, and robotics. Open to discussing six-month 2027 internship opportunities.
+              </p>
+              <div className="text-[11px] text-emerald-400 font-mono pt-2">
+                STATUS: ACCEPTING INTERVIEW DISCUSSIONS FOR JAN–JUN 2027
+              </div>
+            </div>
+
+            <div className="md:col-span-6 grid grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                <div className="text-[10px] text-slate-500 uppercase">DIRECT EMAIL</div>
+                <a
+                  href="mailto:sanjugrehi@gmail.com"
+                  className="font-bold text-slate-100 hover:text-cyan-400 text-xs block transition-colors break-all"
+                >
+                  sanjugrehi@gmail.com
+                </a>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                <div className="text-[10px] text-slate-500 uppercase">LINKEDIN</div>
+                <a
+                  href="https://linkedin.com/in/sanju-grehi-b4618731b"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-bold text-slate-100 hover:text-cyan-400 text-xs block transition-colors"
+                >
+                  /in/sanju-grehi
+                </a>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                <div className="text-[10px] text-slate-500 uppercase">GITHUB</div>
+                <a
+                  href="https://github.com/SanjuGrehi"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-bold text-slate-100 hover:text-cyan-400 text-xs block transition-colors"
+                >
+                  @SanjuGrehi
+                </a>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                <div className="text-[10px] text-slate-500 uppercase">INSTITUTION</div>
+                <div className="font-bold text-slate-200 text-xs">
+                  Sahrdaya CET, Kerala
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-8 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
+            <div>&copy; 2026 Sanju Grehi · Hand-Crafted Embedded Systems Portfolio</div>
+            <div>BUILT WITH REACT 19 · THREE.JS · TAILWIND CSS · VITE</div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
