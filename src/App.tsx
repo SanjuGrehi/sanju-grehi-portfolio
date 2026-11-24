@@ -172,6 +172,200 @@ const PROJECTS = [
   },
 ]
 
+const CERTIFICATIONS = [
+  {
+    title: "KSEBL Internship – 110 KV Substation",
+    issuer: "Kerala State Electricity Board Ltd",
+    date: "Jul 2025",
+    type: "Internship",
+    color: "#16A34A",
+    description:
+      "Completed internship training at the 110 KV Substation, Irinjalakuda, Thrissur from 03-Jul-2025 to 11-Jul-2025.",
+  },
+  {
+    title: "Boot Camp – Allied Technologies for UAS/Drone",
+    issuer: "NIELIT Calicut / IEEE Kerala Section",
+    date: "Feb 2025",
+    type: "Completion",
+    color: "#2563EB",
+    description:
+      "One-week offline boot camp on drone and related technologies, funded by MeitY under LINK, IEEE Kerala Section, IEEE RAS Kerala Chapter.",
+  },
+  {
+    title: "Embedded Systems Course",
+    issuer: "Elewayte",
+    date: "Jul 2025",
+    type: "Completion",
+    color: "#7C3AED",
+    description:
+      "Successfully completed the Embedded Systems course offered by Elewayte between May 2025 and June 2025.",
+  },
+  {
+    title: "AI Awareness & Foundation – AI for Future Workforce Program",
+    issuer: "Dell Technologies / Intel / Sahrdaya CET",
+    date: "Apr 2025",
+    type: "Completion",
+    color: "#0891B2",
+    description:
+      "Completed the AI Awareness and Foundation course as part of the AI for Future Workforce Program from January to April 2025.",
+  },
+  {
+    title: "Digital 101 – 30 Hours (Gold Category)",
+    issuer: "FutureSkills Prime / NASSCOM / MeitY",
+    date: "Dec 2024",
+    type: "Completion",
+    color: "#D97706",
+    description:
+      "Successfully cleared the Digital 101 assessment (30 hours) with a Gold category score (70%+ and above).",
+  },
+  {
+    title: "Be10X AI Tools & ChatGPT Workshop",
+    issuer: "Be10X",
+    date: "Jul 2026",
+    type: "Completion",
+    color: "#DB2777",
+    description:
+      "Completed the AI tools and ChatGPT workshop covering AI presentations, data analysis, and coding/debugging.",
+  },
+  {
+    title: "Best Project Award – E-Savu",
+    issuer: "Sahrdaya College of Engg & Technology",
+    date: "Mar 2025",
+    type: "Award",
+    color: "#16A34A",
+    description:
+      "Received best project award for the project titled 'E-Savu' during the academic year 2024–2025.",
+  },
+  {
+    title: "Secretary – IEEE Signal Processing Society (SPS)",
+    issuer: "IEEE Sahrdaya SB – Execom'25",
+    date: "2025",
+    type: "Leadership",
+    color: "#2563EB",
+    description:
+      "Recognized for outstanding contributions and exemplary dedication as Secretary of SPS in the Execom'25 of IEEE Sahrdaya SB.",
+  },
+  {
+    title: "Siemens – How Engineers Can Stand Out to Employers",
+    issuer: "Siemens",
+    date: "May 2025",
+    type: "Achievement",
+    color: "#0891B2",
+    description:
+      "Certificate of Achievement for completing the Siemens course on how engineering students and early-career engineers can stand out to employers.",
+  },
+  {
+    title: "IEEE Student Membership 2026",
+    issuer: "IEEE",
+    date: "2026",
+    type: "Membership",
+    color: "#D97706",
+    description:
+      "Student Member in good standing through December 2026, denoting commitment to the advancement of technology.",
+  },
+  {
+    title: "IEEE Control Systems Society Membership 2026",
+    issuer: "IEEE Control Systems Society",
+    date: "2026",
+    type: "Membership",
+    color: "#7C3AED",
+    description:
+      "Student Member of IEEE Control Systems Society in good standing for 2026.",
+  },
+  {
+    title: "IEEE Signal Processing Society Membership 2026",
+    issuer: "IEEE Signal Processing Society",
+    date: "2026",
+    type: "Membership",
+    color: "#DB2777",
+    description:
+      "Student Member of IEEE Signal Processing Society in good standing for 2026.",
+  },
+  {
+    title: "IEEE Student Membership 2025",
+    issuer: "IEEE",
+    date: "2025",
+    type: "Membership",
+    color: "#D97706",
+    description:
+      "Student Member in good standing through December 2025.",
+  },
+  {
+    title: "IEEE YESS'25 – Yearly Engineering Students Summit",
+    issuer: "IEEE Kerala Section / IEEE LINK",
+    date: "Sep 2025",
+    type: "Participation",
+    color: "#16A34A",
+    description:
+      "Attended IEEE Yearly Engineering Students Summit 2025 (YESS'25) on 20th September 2025 at NIT Calicut.",
+  },
+  {
+    title: "MINDMESH – IEEE YESS'25 Event",
+    issuer: "IEEE SB RSET / IEEE Kerala Section",
+    date: "Sep 2025",
+    type: "Participation",
+    color: "#2563EB",
+    description:
+      "Participated in the MINDMESH event as part of IEEE YESS'25 at NIT Calicut.",
+  },
+  {
+    title: "AI Image Generation Competition – Myth & Future Tech",
+    issuer: "IEEE Signal Processing Society, Sahrdaya SB",
+    date: "Mar 2025",
+    type: "Participation",
+    color: "#7C3AED",
+    description:
+      "Participated in the AI Image Generation Competition on Myth and Future Tech conducted by IEEE SPS Sahrdaya SB.",
+  },
+  {
+    title: "Navigating Engineering as Friends: A Success Story Gateway",
+    issuer: "IEEE CSS SBC CET",
+    date: "Mar 2025",
+    type: "Participation",
+    color: "#0891B2",
+    description:
+      "Participated in the online talk session conducted by IEEE CSS SBC CET on 8th March 2025.",
+  },
+  {
+    title: "Doodle Competition",
+    issuer: "IEEE Women in Engineering (WiE), Sahrdaya SB",
+    date: "2025",
+    type: "Participation",
+    color: "#DB2777",
+    description:
+      "Participated in the Doodle Competition hosted by the Women in Engineering (WiE) affinity group of IEEE Sahrdaya SB.",
+  },
+  {
+    title: "Tech Trivia",
+    issuer: "NDLI Club / IIT Kharagpur",
+    date: "Oct 2024",
+    type: "Participation",
+    color: "#D97706",
+    description:
+      "Participated in Tech Trivia held on October 26, 2024, organized by the NDLI Club of Sahrdaya College under the National Digital Library of India.",
+  },
+  {
+    title: "Webinar on Professional Career Counselling",
+    issuer: "Elewayte",
+    date: "Nov 2024",
+    type: "Participation",
+    color: "#16A34A",
+    description:
+      "Attended the online webinar on Professional Career Counselling on 24th November 2024.",
+  },
+]
+
+const CERT_TYPES = [
+  "All",
+  "Completion",
+  "Internship",
+  "Award",
+  "Leadership",
+  "Achievement",
+  "Membership",
+  "Participation",
+] as const
+
 const EDUCATION = [
   {
     year: "2024 – 2028",
@@ -1848,48 +2042,114 @@ function Leadership() {
 // ─── CERTIFICATIONS ──────────────────────────────────────────────────────────
 
 function Certifications() {
+  const [filter, setFilter] = useState<string>("All")
+  const filtered =
+    filter === "All"
+      ? CERTIFICATIONS
+      : CERTIFICATIONS.filter((c) => c.type === filter)
+
   return (
     <section
       id="certifications"
       className="py-24"
       style={{ backgroundColor: "var(--bg)" }}
     >
-      <div className="max-w-3xl mx-auto px-4 sm:px-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6">
         <SectionHeader
           label="Certifications"
           title="Verified Credentials"
-          subtitle="Only confirmed, relevant credentials will be shown here."
+          subtitle={`${CERTIFICATIONS.length} certificates across courses, internships, memberships, and IEEE activities.`}
         />
+
+        {/* Filter pills */}
         <FadeIn>
-          <div
-            className="p-8 rounded-2xl text-center"
-            style={{
-              backgroundColor: "var(--bg-card)",
-              border: "1px solid var(--border)",
-              boxShadow: "var(--shadow-sm)",
-            }}
-          >
-            <div
-              className="text-xs font-bold uppercase tracking-widest mb-3"
-              style={{ color: "var(--primary)" }}
-            >
-              Confirmation needed
-            </div>
-            <h3
-              className="font-bold mb-2"
-              style={{ color: "var(--fg)", fontFamily: "var(--font-display)" }}
-            >
-              No verified certifications are currently listed
-            </h3>
-            <p
-              className="text-sm leading-relaxed max-w-xl mx-auto"
-              style={{ color: "var(--fg-muted)" }}
-            >
-              Relevant certification names, issuing organizations, dates, and
-              credential links can be added after they are confirmed.
-            </p>
+          <div className="flex flex-wrap gap-2 justify-center mb-10">
+            {CERT_TYPES.map((t) => (
+              <button
+                key={t}
+                onClick={() => setFilter(t)}
+                className="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all"
+                style={{
+                  backgroundColor:
+                    filter === t ? "var(--primary)" : "var(--bg-card)",
+                  color: filter === t ? "#fff" : "var(--fg-muted)",
+                  border: `1px solid ${filter === t ? "var(--primary)" : "var(--border)"}`,
+                }}
+              >
+                {t}
+                {t !== "All" && (
+                  <span className="ml-1 opacity-60">
+                    ({CERTIFICATIONS.filter((c) => c.type === t).length})
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
         </FadeIn>
+
+        {/* Certificate cards */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((cert, i) => (
+            <FadeIn key={i}>
+              <div
+                className="p-5 rounded-2xl h-full flex flex-col"
+                style={{
+                  backgroundColor: "var(--bg-card)",
+                  border: "1px solid var(--border)",
+                  boxShadow: "var(--shadow-sm)",
+                }}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <span
+                    className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                    style={{
+                      backgroundColor: cert.color + "18",
+                      color: cert.color,
+                    }}
+                  >
+                    {cert.type}
+                  </span>
+                  <span
+                    className="text-[11px] font-medium"
+                    style={{ color: "var(--fg-muted)" }}
+                  >
+                    {cert.date}
+                  </span>
+                </div>
+                <h3
+                  className="font-bold text-sm mb-1 leading-snug"
+                  style={{
+                    color: "var(--fg)",
+                    fontFamily: "var(--font-display)",
+                  }}
+                >
+                  {cert.title}
+                </h3>
+                <p
+                  className="text-xs font-medium mb-2"
+                  style={{ color: cert.color }}
+                >
+                  {cert.issuer}
+                </p>
+                <p
+                  className="text-xs leading-relaxed mt-auto"
+                  style={{ color: "var(--fg-muted)" }}
+                >
+                  {cert.description}
+                </p>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+
+        {filtered.length === 0 && (
+          <p
+            className="text-center text-sm py-12"
+            style={{ color: "var(--fg-muted)" }}
+          >
+            No certificates in this category.
+          </p>
+        )}
       </div>
     </section>
   )
