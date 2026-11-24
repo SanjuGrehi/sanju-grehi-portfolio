@@ -174,7 +174,7 @@ const PROJECTS = [
 
 const EDUCATION = [
   {
-    year: "2023 – 2027",
+    year: "2024 – 2028",
     type: "education",
     highlight: true,
     title: "B.Tech – Electrical & Electronics Engineering",
