@@ -933,7 +933,7 @@ function Hero() {
                     className="text-xs mt-0.5"
                     style={{ color: "var(--fg-muted)" }}
                   >
-                    B.Tech EEE · 2023–2027
+                    B.Tech EEE · 2023–2028
                   </p>
                 </div>
                 <div
@@ -947,7 +947,7 @@ function Hero() {
                   {[
                     ["Target", "Embedded / Firmware"],
                     ["Specialization", "Robotics & Intelligent Systems"],
-                    ["Education", "B.Tech EEE · 2023–2027"],
+                    ["Education", "B.Tech EEE · 2023–2028"],
                     ["Preference", "Kerala first"],
                   ].map(([label, value]) => (
                     <div
